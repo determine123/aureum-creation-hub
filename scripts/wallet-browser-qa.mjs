@@ -30,6 +30,7 @@ try{
  await p.getByRole('button',{name:'连接浏览器钱包',exact:true}).click();
  await p.getByRole('status').filter({hasText:'连接测试网钱包完成'}).waitFor();
  assert.match(await p.locator('.wallet-balance').innerText(),new RegExp(addresses[1].slice(0,6)));
+ await p.waitForFunction(()=>{const text=document.querySelector('.wallet-balance small')?.textContent||'';return text.includes('MON')&&!text.includes('—');});
  await p.getByRole('button',{name:'钱包部署（2 笔，可续传）',exact:true}).click();
  await p.getByRole('status').filter({hasText:'取消钱包签名'}).waitFor();
  const partial=await p.evaluate(address=>JSON.parse(localStorage.getItem('aureum:hub:partial:10143:'+address.toLowerCase())),addresses[1]);
@@ -39,6 +40,6 @@ try{
  const cfg=await p.evaluate(()=>JSON.parse(localStorage.getItem('aureum:hub:v1')));
  assert.equal(cfg.token,partial.token);assert.ok(cfg.hub);assert.notEqual(await demo.provider.getCode(cfg.hub),'0x');
  assert.equal(await p.evaluate(()=>window.__sendAttempts),3);assert.deepEqual(errors,[]);
- fs.mkdirSync('qa-hub',{recursive:true});fs.writeFileSync('qa-hub/wallet-result.json',JSON.stringify({passed:true,simulatedNetwork:true,checks:['EIP6963 without window.ethereum','multiple wallet selection','real local deployments','rejected second deployment resumes without redeploying token'],pageErrors:errors},null,2));
+ fs.mkdirSync('qa-hub',{recursive:true});fs.writeFileSync('qa-hub/wallet-result.json',JSON.stringify({passed:true,simulatedNetwork:true,checks:['EIP6963 without window.ethereum','multiple wallet selection','native gas balance before contract deployment','real local deployments','rejected second deployment resumes without redeploying token'],pageErrors:errors},null,2));
  console.log('Wallet discovery and resumable deployment passed on a simulated local network.');
 }finally{if(browser)await browser.close();vite.kill();demo.provider.destroy();await demo.server.close();}

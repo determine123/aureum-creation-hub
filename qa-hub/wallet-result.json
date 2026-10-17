@@ -4,6 +4,7 @@
   "checks": [
     "EIP6963 without window.ethereum",
     "multiple wallet selection",
+    "native gas balance before contract deployment",
     "real local deployments",
     "rejected second deployment resumes without redeploying token"
   ],

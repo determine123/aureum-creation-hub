@@ -20,8 +20,14 @@ try{
  await page.getByText('已检测到 0 个钱包',{exact:true}).waitFor();
  await page.screenshot({path:'qa-hub/public-wallet-setup.png',fullPage:true});
  await page.getByRole('button',{name:'关闭窗口',exact:true}).click();
+ await page.getByRole('button',{name:'MON 水龙头',exact:true}).click();
+ const faucet=page.getByRole('dialog',{name:'MON 水龙头',exact:true});
+ await faucet.getByRole('heading',{name:'MON 测试币水龙头',exact:true}).waitFor();
+ assert.equal(await faucet.getByRole('link',{name:'打开官方水龙头',exact:false}).getAttribute('href'),'https://faucet.monad.xyz/');
+ await page.screenshot({path:'qa-hub/public-faucet.png',fullPage:true});
+ await page.getByRole('button',{name:'关闭窗口',exact:true}).click();
  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  assert.deepEqual(errors,[]);assert.deepEqual(badAssets,[]);
- fs.writeFileSync('qa-hub/public-result.json',JSON.stringify({passed:true,url,anonymousAccess:true,scope:'Public frontend and wallet setup only; public contract transactions not yet verified',pageErrors:errors,badAssets,mobileOverflow:false},null,2));
+ fs.writeFileSync('qa-hub/public-result.json',JSON.stringify({passed:true,url,anonymousAccess:true,scope:'Public frontend, MON faucet entry and wallet setup only; public contract transactions not yet verified',pageErrors:errors,badAssets,mobileOverflow:false},null,2));
  console.log('Anonymous public frontend, subpath assets, wallet setup and mobile layout passed.');
 }finally{await browser.close();}
