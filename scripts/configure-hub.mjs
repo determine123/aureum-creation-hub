@@ -2,9 +2,10 @@ import fs from 'node:fs';
 import {JsonRpcProvider,Contract,isAddress} from 'ethers';
 import hubAbi from '../web/generated/CreationHub.json' with {type:'json'};
 import tokenAbi from '../web/generated/DemoToken.json' with {type:'json'};
+import {publicProvider} from './public-provider.mjs';
 export async function validate(config){
  if(config.chainId!==10143||!/^https:\/\//.test(config.rpcUrl)||!isAddress(config.hub)||!isAddress(config.token))throw Error('Requires chain 10143, HTTPS RPC and both contract addresses');
- const p=new JsonRpcProvider(config.rpcUrl);
+ const p=publicProvider(config.rpcUrl);
  try{
   if((await p.getNetwork()).chainId!==10143n)throw Error('RPC chain mismatch');
   for(const a of [config.hub,config.token])if(await p.getCode(a)==='0x')throw Error('No deployed bytecode at '+a);

@@ -1,0 +1,48 @@
+{
+  "recordedAt": "2026-10-17T09:13:41.958Z",
+  "scope": "Live Monad testnet RPC audit and estimates; NO new transactions sent",
+  "chainId": 10143,
+  "rpcUrl": "https://testnet-rpc.monad.xyz",
+  "token": "0x96d09DaD56d6ebbD2BB53832DA4fFaAc24f68F65",
+  "hub": "0x86a520A1d3581750e3c2D2Ed5d99B01dC54801Db",
+  "account": "0x37F416f3945b1d40b888868b7C0B37605d446C1e",
+  "finalizedBlock": {
+    "number": 71782567,
+    "hash": "0x16bc98d3faba7e3eb7262fd9a60d6a0d9d15ffff7040da433b8b37be44f72760"
+  },
+  "tokenRuntimeMatches": true,
+  "hubRuntimeMatches": true,
+  "hubSourceRef": "5d067e9",
+  "hubVersion": "legacy, single support only",
+  "creationCount": "0",
+  "publicTransactionsSent": false,
+  "rows": [
+    {
+      "operation": "publish",
+      "bodyUtf8Bytes": 100,
+      "estimatedGas": "239119",
+      "gasLimit": "263030",
+      "gasPriceWei": "102000000000",
+      "estimatedFeeWei": "26829060000000000",
+      "kind": "RPC estimate, not a transaction receipt"
+    },
+    {
+      "operation": "publish",
+      "bodyUtf8Bytes": 1000,
+      "estimatedGas": "738727",
+      "gasLimit": "812599",
+      "gasPriceWei": "102000000000",
+      "estimatedFeeWei": "82885098000000000",
+      "kind": "RPC estimate, not a transaction receipt"
+    },
+    {
+      "operation": "publish",
+      "bodyUtf8Bytes": 6000,
+      "estimatedGas": "3532902",
+      "gasLimit": "3886192",
+      "gasPriceWei": "102000000000",
+      "estimatedFeeWei": "396391584000000000",
+      "kind": "RPC estimate, not a transaction receipt"
+    }
+  ]
+}

@@ -28,8 +28,8 @@
     },
     {
       "name": "githubUrl-anonymous-http",
-      "status": "pass",
-      "detail": "200 https://github.com/determine123/aureum-creation-hub; browser acceptance still required"
+      "status": "blocked",
+      "detail": "fetch failed"
     },
     {
       "name": "screenshot-count",
@@ -64,12 +64,22 @@
     {
       "name": "testnet-contracts",
       "status": "blocked",
-      "detail": "Local demonstration config is not eligible for public submission"
+      "detail": "Command failed: curl.exe --proxy http://127.0.0.1:49721 --http1.1 --silent --show-error --connect-timeout 8 --max-time 15 --retry 2 --retry-all-errors --retry-delay 1 https://testnet-rpc.monad.xyz -H Content-Type: application/json --data-raw {\"id\":1,\"method\":\"eth_chainId\",\"params\":[],\"jsonrpc\":\"2.0\"} --write-out \n%{http_code}\ncurl: (35) schannel: failed to receive handshake, SSL/TLS connection failed\r\ncurl: (35) schannel: failed to receive handshake, SSL/TLS connection failed\r\ncurl: (35) schannel: failed to receive handshake, SSL/TLS connection failed\r\n"
     },
     {
       "name": "explorer-verification-records",
+      "status": "pass",
+      "detail": "Requires successful explorer results, not merely response files"
+    },
+    {
+      "name": "testnet-batch-support",
       "status": "blocked",
-      "detail": "Records must also be inspected for final verification success"
+      "detail": "Public legacy hub does not implement the advertised batch flow; deploy the new hub and re-audit before submission"
+    },
+    {
+      "name": "public-write-acceptance",
+      "status": "blocked",
+      "detail": "Requires real publish and support transactions for the configured public hub"
     },
     {
       "name": "agent-instructions-read",

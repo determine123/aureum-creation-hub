@@ -6,7 +6,8 @@
     "multiple wallet selection",
     "native gas balance before contract deployment",
     "real local deployments",
-    "rejected second deployment resumes without redeploying token"
+    "rejected second deployment resumes without redeploying token",
+    "new hub uses same token and exactly one additional transaction"
   ],
   "pageErrors": []
 }

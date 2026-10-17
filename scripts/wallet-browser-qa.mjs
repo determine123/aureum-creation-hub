@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {chromium} from 'playwright';
+import {Contract} from 'ethers';
 import {createDemo} from './hub-demo.mjs';
 const demo=await createDemo(18647,10143); // Simulated network only, never public-testnet evidence.
 const vite=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','15177','--strictPort'],{stdio:'ignore',windowsHide:true});
@@ -40,6 +41,16 @@ try{
  const cfg=await p.evaluate(()=>JSON.parse(localStorage.getItem('aureum:hub:v1')));
  assert.equal(cfg.token,partial.token);assert.ok(cfg.hub);assert.notEqual(await demo.provider.getCode(cfg.hub),'0x');
  assert.equal(await p.evaluate(()=>window.__sendAttempts),3);assert.deepEqual(errors,[]);
- fs.mkdirSync('qa-hub',{recursive:true});fs.writeFileSync('qa-hub/wallet-result.json',JSON.stringify({passed:true,simulatedNetwork:true,checks:['EIP6963 without window.ethereum','multiple wallet selection','native gas balance before contract deployment','real local deployments','rejected second deployment resumes without redeploying token'],pageErrors:errors},null,2));
- console.log('Wallet discovery and resumable deployment passed on a simulated local network.');
+ await p.getByRole('button',{name:'连接钱包',exact:true}).click();
+ await p.getByRole('status').filter({hasText:'连接钱包完成'}).waitFor();
+ await p.getByRole('button',{name:'网络设置',exact:true}).click();
+ await p.getByRole('button',{name:'仅部署新版平台（1 笔，复用测试币）',exact:true}).click();
+ await p.getByRole('status').filter({hasText:'部署新版平台完成'}).waitFor();
+ const upgraded=await p.evaluate(()=>JSON.parse(localStorage.getItem('aureum:hub:v1')));
+ assert.equal(upgraded.token,cfg.token);assert.notEqual(upgraded.hub,cfg.hub);
+ assert.equal(await p.evaluate(()=>window.__sendAttempts),4);
+ assert.equal(await new Contract(upgraded.hub,['function MAX_SUPPORT_BATCH() view returns(uint256)'],demo.provider).MAX_SUPPORT_BATCH(),20n);
+ assert.deepEqual(errors,[]);
+ fs.mkdirSync('qa-hub',{recursive:true});fs.writeFileSync('qa-hub/wallet-result.json',JSON.stringify({passed:true,simulatedNetwork:true,checks:['EIP6963 without window.ethereum','multiple wallet selection','native gas balance before contract deployment','real local deployments','rejected second deployment resumes without redeploying token','new hub uses same token and exactly one additional transaction'],pageErrors:errors},null,2));
+ console.log('Wallet discovery, resumable deployment and one-transaction hub replacement passed on a simulated local network.');
 }finally{if(browser)await browser.close();vite.kill();demo.provider.destroy();await demo.server.close();}

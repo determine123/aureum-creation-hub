@@ -1,1 +1,6 @@
-{"chainId":10143,"rpcUrl":"https://testnet-rpc.monad.xyz","token":"","hub":""}
+{
+  "chainId": 10143,
+  "rpcUrl": "https://testnet-rpc.monad.xyz",
+  "token": "0x96d09DaD56d6ebbD2BB53832DA4fFaAc24f68F65",
+  "hub": "0x86a520A1d3581750e3c2D2Ed5d99B01dC54801Db"
+}

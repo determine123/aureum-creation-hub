@@ -8,6 +8,15 @@ Real Monad 的四项输入可直接使用 [重新评审填写稿](submission/REA
 
 核心场景是“逛一次作品展，支持多个好想法”：读者发现项目、Ideas 等不同作品后，把最多 20 份加入支持篮，必要时先授权，再用一笔原子交易支持多个作者。这是待真实用户验证的产品假设；测试币支持金额不代表声誉、真实需求或持续收入。
 
+## 已核验并验证的 Monad 测试网地址
+
+- DemoToken：[0x96d09DaD56d6ebbD2BB53832DA4fFaAc24f68F65](https://testnet.monadscan.com/address/0x96d09DaD56d6ebbD2BB53832DA4fFaAc24f68F65#code)。
+- CreationHub：[0x86a520A1d3581750e3c2D2Ed5d99B01dC54801Db](https://testnet.monadscan.com/address/0x86a520A1d3581750e3c2D2Ed5d99B01dC54801Db#code)。这是旧版，仅支持单笔支持，不含批量接口。
+- 运行时代码与历史源码 5d067e9 匹配（仅按编译器 immutableReferences 排除构造时填入的不可变量）；币种、精度与 hub.token 关联均通过 RPC 核验。
+- 原始证据见 [公共链核验记录](deployment/testnet-audit.json) 与 [Monad RPC 估算](benchmarks/monad-estimates.json)。6,000 字节正文在记录费率下约 0.396391584 MON（含 10% 余量），是只读估算，不是成交费用或延迟测量。
+- 复用已有币部署新版：设置中连接钱包，点击“仅部署新版平台（1 笔，复用测试币）”。这是新合约部署，不迁移旧作品、授权或收藏；现有 BLITZ 余额保留在原代币。
+- 旧版合约在 Monadscan 与 Monadvision 均已验证成功，响应保存在 verification/。发布/支持交易 hash 与新版批量合约地址仍须补齐。
+
 ## 新增：灵感支持篮与交易证据
 
 - 最多 20 份作品合并为一笔批量支持，必要时先按本次总额授权。任一项失败，全批回滚，资金直接抵达作者。合约禁止重复项、自我支持、零金额及归档作品。
@@ -23,8 +32,8 @@ Real Monad 的四项输入可直接使用 [重新评审填写稿](submission/REA
 - 已实现：公开浏览、五种类型、关键词检索、排序、作品详情、作者筛选、链上收藏、发布、归档/恢复、测试币领取、直接到作者钱包的打赏。
 - 已实现：本地链一键演示、浏览器钱包测试网部署入口、公共地址校验与区块浏览器验证脚本。
 - 已创建公开源码仓库：https://github.com/determine123/aureum-creation-hub 。已配置 GitHub Pages 自动部署；最终部署状态以 Actions 与匿名访问验收为准。
-- 公共前端：https://determine123.github.io/aureum-creation-hub/ ，已通过匿名浏览、静态资源、钱包部署向导与手机布局验收；公共链交易仍待真实合约地址。
-- 未完成：实际公共测试网部署与验证。需要用户钱包确认部署交易，不能以本地地址代替。
+- 公共前端：https://determine123.github.io/aureum-creation-hub/ ，已通过匿名浏览、静态资源、钱包部署向导与手机布局验收；公共链写操作仍待真实交易验收。
+- 公共测试网已配置经 RPC 与历史源码字节码核验的旧版合约（支持单笔流程，不含 supportBatch）；两份旧版合约的区块浏览器验证均已成功；新版批量合约部署和线上写操作验收仍待完成。
 - 历史竞拍和代币买卖代码保留在仓库中，本版首页仅使用 CreationHub，不运行竞拍流程。
 
 ## 快速体验

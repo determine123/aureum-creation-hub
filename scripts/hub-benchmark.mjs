@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import ganache from 'ganache';
 import {BrowserProvider,JsonRpcProvider,Contract,ContractFactory,formatEther,isAddress,parseEther} from 'ethers';
 import {compile} from './compile.mjs';
+import {publicProvider} from './public-provider.mjs';
 
 // Public mode is estimate-only. It never signs, sends or requests private keys.
 const publicMode=process.argv.includes('--testnet');
@@ -18,7 +19,7 @@ try{
   const c=JSON.parse(fs.readFileSync(configPath,'utf8'));
   const account=process.argv[process.argv.indexOf('--account')+1];
   if(c.chainId!==10143||!c.rpcUrl.startsWith('https://')||!isAddress(c.hub)||!isAddress(account))throw Error('Provide a verified chain-10143 config and --account <public address>. No private key is needed.');
-  provider=new JsonRpcProvider(c.rpcUrl,undefined,{cacheTimeout:-1});
+  provider=publicProvider(c.rpcUrl);
   if((await provider.getNetwork()).chainId!==10143n)throw Error('RPC chain mismatch');
   if(await provider.getCode(c.hub)==='0x')throw Error('No hub bytecode');
   hub=new Contract(c.hub,artifact('CreationHub').abi,provider);

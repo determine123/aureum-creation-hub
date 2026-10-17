@@ -35,7 +35,13 @@ try{
  if(config.chainId!==10143)throw Error('Local demonstration config is not eligible for public submission');
  await validate(config);add('testnet-contracts',true);
 }catch(e){add('testnet-contracts',false,e.message);}
-add('explorer-verification-records',fs.existsSync('verification/DemoToken.json')&&fs.existsSync('verification/CreationHub.json'),'Records must also be inspected for final verification success');
+let verified=false;
+try{verified=['DemoToken','CreationHub'].every(name=>{const r=JSON.parse(fs.readFileSync('verification/'+name+'.json'));return r.success===true&&r.verified>0&&r.verified===r.total&&Object.values(r.results||{}).every(v=>v.status==='success');});}catch{}
+add('explorer-verification-records',verified,'Requires successful explorer results, not merely response files');
+add('testnet-batch-support',manifest.contracts?.batchSupport===true,'Public legacy hub does not implement the advertised batch flow; deploy the new hub and re-audit before submission');
+let publicWrites=false;
+try{const r=JSON.parse(fs.readFileSync('submission/public-e2e.json'));publicWrites=r.passed===true&&r.chainId===10143&&r.hub?.toLowerCase()===manifest.contracts?.hub?.toLowerCase()&&[r.publishTx,r.supportTx].every(s=>/^0x[a-fA-F0-9]{64}$/.test(s));}catch{}
+add('public-write-acceptance',publicWrites,'Requires real publish and support transactions for the configured public hub');
 let officialRead=false;try{const record=JSON.parse(fs.readFileSync('submission/agent-instructions-record.json','utf8'));officialRead=record.source==='https://mojo.devnads.com/api/agent/instructions/17/skill.md'&&/^[a-f0-9]{64}$/.test(record.sha256);}catch{}
 add('agent-instructions-read',officialRead,'Source and SHA-256 recorded after reading the official instructions');
 fs.writeFileSync('submission/readiness.json',JSON.stringify({ready:checks.every(c=>c.status==='pass'),checks},null,2));
