@@ -73,6 +73,7 @@ export default function App(){
  useEffect(()=>{generation.current++;setItems([]);setSaved(new Set());setReady(false);let active=true,running=false;const read=async()=>{if(!active||running)return;running=true;try{await refresh();}finally{running=false;}};read();const timer=setInterval(read,10000);return()=>{active=false;generation.current++;clearInterval(timer);};},[refresh]);
  useEffect(()=>{const eth=selectedWallet?.provider;if(!eth?.on)return;const reset=()=>{setSigner(null);setAccount('');};eth.on('accountsChanged',reset);eth.on('chainChanged',reset);return()=>{eth.removeListener?.('accountsChanged',reset);eth.removeListener?.('chainChanged',reset);};},[selectedWallet?.provider]);
  useEffect(()=>{if(!ready)return;const id=new URLSearchParams(location.search).get('creation');if(id&&/^\d+$/.test(id)){hub().getCreation(id).then(c=>setSelected(normalize(c))).catch(()=>setMessage('该作品不存在'));}},[cfg.hub,ready]);
+ useEffect(()=>{if(modal!=='settings'||!new URLSearchParams(location.search).has('deploy'))return;const timer=setTimeout(()=>document.getElementById('deploy-latest-hub')?.scrollIntoView({block:'center'}),300);return()=>clearTimeout(timer);},[modal]);
  async function run(label:string,action:()=>Promise<void>){if(lock.current)return;lock.current=true;setBusy(true);setMessage(label+'，请确认钱包交易…');try{await action();await refresh();setMessage(label+'完成');}catch(e){setMessage(errorText(e));}finally{lock.current=false;setBusy(false);}}
  async function transact(c:Contract,method:string,args:unknown[]=[]){
   const started=performance.now(),tx=await send(c,method,args);setLastTx(tx.hash);const receipt=await tx.wait();
@@ -162,6 +163,7 @@ export default function App(){
 </>:<>
 <h2>网络与部署</h2>
 <DeploymentGuide wallets={wallets} walletId={walletId} onWallet={id=>{setWalletId(id);setSigner(null);setAccount("");}} onRescan={rescanWallets} cfg={cfg} account={account} busy={busy} onSwitch={()=>{saveConfig({...initial,chainId:10143,rpcUrl:"https://testnet-rpc.monad.xyz",token:"",hub:""});setModal("settings");}} onConnect={()=>run("连接测试网钱包",()=>connect(false))}/>
+{cfg.chainId===10143&&cfg.token&&<div className="deploy-callout"><strong>下一步：部署新版批量合约</strong><p>复用现有 BLITZ，仅部署平台合约，1 笔钱包交易。部署完成后点击“下载配置”。</p><button id="deploy-latest-hub" className="button gold" disabled={busy||!signer} onClick={()=>run("部署新版平台",deployLatestHub)}>部署新版平台（1 笔）</button></div>}
 <p className="form-note">本地演示链 31337 / Monad 测试网 10143。发布公共站点前，需要同步公共合约配置。</p>
 <textarea aria-label="网络配置" rows={9} value={draft} onChange={e=>setDraft(e.target.value)}/>
 <div className="detail-actions">
