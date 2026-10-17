@@ -25,6 +25,7 @@
 - Mojo Agent 已注册，用户已完成认领；GET /api/agent/me 已返回 claimedUser。密钥使用 Windows DPAPI 加密存储于当前用户的 LOCALAPPDATA/AureumBlitz，不在项目、Git 或日志中。
 - 读取比赛现有项目与资格的请求仍受间歇性 TLS 影响，尚未上传截图或正式提交。
 - 新部署向导为 /?deploy=1。支持 EIP-6963 多钱包发现，不再仅依赖 window.ethereum；可以选择钱包，拒签第二笔后可重试续传。当前浏览器需安装并启用钱包扩展，已通过模拟本地网络的浏览器部署验证。
-- Sites 复用原 project_id，源码推送仍受 TLS 失败影响，尚未取得公共部署网址；没有创建重复站点。
+- Sites 复用原 project_id，源码推送仍受 TLS 失败影响；没有创建重复站点。已改用同一公开仓库的 GitHub Pages 自动部署，Pages 已启用，构建与外部验收结果另行确认。
+- GitHub Pages 已成功提供公共前端 https://determine123.github.io/aureum-creation-hub/ 。匿名浏览器验收报告为 qa-hub/public-result.json；仅前端与部署入口通过，不代表公共测试网交易已完成。
 
 本文件区分已知表单要求与尚未读取的 Agent 细则，不将本地测试视为公共上线成功。
