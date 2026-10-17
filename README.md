@@ -27,17 +27,19 @@ npm run demo
 5. 作者钱包余额与累计支持同步增加；刷新重连后收藏仍存在。
 6. 作者可以归档、恢复自己的作品。
 
-本地演示使用内存链，重启后重建示例。启动脚本会把本地地址写入 web/hub-deployment.json；发布前必须换回经过校验的测试网配置。
+本地演示使用内存链，重启后重建示例。启动脚本通过开发服务器的 VITE_LOCAL_DEMO 注入本地地址，不修改公共配置。发布前仍需确认 web/hub-deployment.json 是经过校验的测试网配置；旧演示留下的本地地址不得发布。
 
 ## Monad 测试网部署
 
 用户在浏览器钱包中确认交易，不索取私钥：
 
-1. 运行 npm run dev，打开页面的「网络与部署」。
+1. 运行 npm run dev，打开 /?deploy=1 进入部署向导。请在装有钱包扩展的 Edge/Chrome 配置文件中打开；内置浏览器通常不提供扩展钱包。
 2. 配置 chainId 10143、rpcUrl https://testnet-rpc.monad.xyz，token/hub 先留空。
 3. 保存，连接有测试 MON 的浏览器钱包。
 4. 点「钱包部署」，分别确认 DemoToken 与 CreationHub 两笔交易。中途拒签后可重试，已部署的币地址保存在本机，按链与账户区分。
 5. 复制设置里的配置到 JSON 文件，执行以下命令。
+
+向导显示检测到的钱包数量并支持 EIP-6963 多钱包选择。若显示 0 个，检查扩展是否在当前浏览器配置文件启用、是否允许访问此网站，解锁后刷新或重新检测。钱包安装仅使用 MetaMask/Rabby 官方渠道，不向网站或开发者提供助记词。
 
 ```sh
 npm run configure:hub -- path/to/testnet-config.json

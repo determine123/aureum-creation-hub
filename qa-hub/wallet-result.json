@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "simulatedNetwork": true,
+  "checks": [
+    "EIP6963 without window.ethereum",
+    "multiple wallet selection",
+    "real local deployments",
+    "rejected second deployment resumes without redeploying token"
+  ],
+  "pageErrors": []
+}

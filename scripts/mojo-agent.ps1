@@ -1,11 +1,11 @@
-param([ValidateSet('register','status')][string]$Action='status')
+param([ValidateSet('register','status','projects')][string]$Action='status')
 $ErrorActionPreference='Stop'
 $credentialDirectory=Join-Path $env:LOCALAPPDATA 'AureumBlitz'
 $credentialPath=Join-Path $credentialDirectory 'mojo-agent.dpapi'
 $identityPath=Join-Path $credentialDirectory 'mojo-agent.json'
 
 function Invoke-Mojo([string]$Path,[string]$Method='GET',[string]$Body='',[string]$Secret=''){
- if($Path -notin @('/api/agent/register','/api/agent/me')){throw 'Unsupported Mojo route'}
+ if($Path -notin @('/api/agent/register','/api/agent/me','/api/agent/projects?eventId=17')){throw 'Unsupported Mojo route'}
  $curlConfig=@('url = "https://mojo.devnads.com'+$Path+'"','request = "'+$Method+'"','header = "Content-Type: application/json"')
  if($Secret){$curlConfig+='header = "Authorization: Bearer '+$Secret+'"'}
  if($Body){$escapedBody=$Body.Replace('\','\\').Replace('"','\"').Replace("`n",'\n').Replace("`r",'\r');$curlConfig+='data = "'+$escapedBody+'"'}
@@ -31,7 +31,18 @@ if($Action -eq 'register'){
  $publicIdentity|ConvertTo-Json
 }else{
  if(!(Test-Path -LiteralPath $credentialPath)){throw 'No agent credential exists. Run this script with -Action register first.'}
- $secure=Get-Content -LiteralPath $credentialPath -Raw | ConvertTo-SecureString
+ $secure=(Get-Content -LiteralPath $credentialPath -Raw).Trim() | ConvertTo-SecureString
  $secret=[System.Net.NetworkCredential]::new('',$secure).Password
- try{$me=Invoke-Mojo '/api/agent/me' 'GET' '' $secret;$status=if($me.data){$me.data}else{$me};@{agentId=$status.agentId;status=$status.status;claimed=[bool]$status.claimedUser}|ConvertTo-Json}finally{$secret=$null}
+ try{
+  if($Action -eq 'projects'){
+   $projects=Invoke-Mojo '/api/agent/projects?eventId=17' 'GET' '' $secret
+   $projects | ConvertTo-Json -Depth 12
+  }else{
+   $me=Invoke-Mojo '/api/agent/me' 'GET' '' $secret
+   $status=if($me.data){$me.data}else{$me}
+   $identity=Get-Content -LiteralPath $identityPath -Raw | ConvertFrom-Json
+   $apiStatus=if($status.status){$status.status}elseif($status.agent.status){$status.agent.status}else{$null}
+   @{agentId=$identity.agentId;apiStatus=$apiStatus;claimed=[bool]$status.claimedUser}|ConvertTo-Json
+  }
+ }finally{$secret=$null}
 }

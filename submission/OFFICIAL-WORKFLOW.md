@@ -2,10 +2,10 @@
 
 ## 已知来源
 
-- MONSKILLS：https://skills.devnads.com/install.md （本次远程读取 TLS 失败；本地已安装技能已读取）
+- MONSKILLS：https://skills.devnads.com/install.md （本地已安装技能已读取）
 - Monad 开发指南：https://docs.monad.xyz/developer-essentials （已读取）
 - 比赛：https://mojo.devnads.com/events/17
-- 比赛 Agent 指令：https://mojo.devnads.com/api/agent/instructions/17/skill.md （本次 web、curl 和 Node fetch 均未能读取，尚不能按其中规则注册/绑定/提交）
+- 比赛 Agent 指令：https://mojo.devnads.com/api/agent/instructions/17/skill.md （已成功读取；正文保留于本机、未提交 Git，避免复述指令）
 - 用户提供的项目提交表单：中文项目名、外部可访问演示网址、公开 GitHub 仓库、Monad Blitz 活动关联、1–5 张横屏截图、项目文档与完整 README。
 
 ## 执行顺序
@@ -20,8 +20,11 @@
 
 ## 当前外部依赖
 
-- 本机 gh 报告已保存凭据无效；GitHub Connector 可读取账号 determine123，但当前工具没有创建仓库能力。本机需要用户重新认证（gh auth refresh -h github.com）后才能创建并推送新仓库。
+- GitHub 登录已恢复，公开仓库 https://github.com/determine123/aureum-creation-hub 已创建并已有源码。后续更新仍可能受间歇性 TLS 影响，需要检查实际远程提交版本。
 - Monad RPC 余额读取因 ECONNRESET 失败，未独立核实用户提供的 100 MON 水龙头结果。
-- 比赛 Agent 指令尚不可读，因此未进行注册、绑定、截图上传或正式提交。
+- Mojo Agent 已注册，用户已完成认领；GET /api/agent/me 已返回 claimedUser。密钥使用 Windows DPAPI 加密存储于当前用户的 LOCALAPPDATA/AureumBlitz，不在项目、Git 或日志中。
+- 读取比赛现有项目与资格的请求仍受间歇性 TLS 影响，尚未上传截图或正式提交。
+- 新部署向导为 /?deploy=1。支持 EIP-6963 多钱包发现，不再仅依赖 window.ethereum；可以选择钱包，拒签第二笔后可重试续传。当前浏览器需安装并启用钱包扩展，已通过模拟本地网络的浏览器部署验证。
+- Sites 复用原 project_id，源码推送仍受 TLS 失败影响，尚未取得公共部署网址；没有创建重复站点。
 
 本文件区分已知表单要求与尚未读取的 Agent 细则，不将本地测试视为公共上线成功。

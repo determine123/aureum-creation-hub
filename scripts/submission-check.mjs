@@ -32,7 +32,8 @@ try{
  await validate(config);add('testnet-contracts',true);
 }catch(e){add('testnet-contracts',false,e.message);}
 add('explorer-verification-records',fs.existsSync('verification/DemoToken.json')&&fs.existsSync('verification/CreationHub.json'),'Records must also be inspected for final verification success');
-add('agent-instructions-read',fs.existsSync('submission/official-agent-instructions.md'),'Do not register or submit using guessed API paths');
+let officialRead=false;try{const record=JSON.parse(fs.readFileSync('submission/agent-instructions-record.json','utf8'));officialRead=record.source==='https://mojo.devnads.com/api/agent/instructions/17/skill.md'&&/^[a-f0-9]{64}$/.test(record.sha256);}catch{}
+add('agent-instructions-read',officialRead,'Source and SHA-256 recorded after reading the official instructions');
 fs.writeFileSync('submission/readiness.json',JSON.stringify({ready:checks.every(c=>c.status==='pass'),checks},null,2));
 for(const c of checks)console.log(`${c.status.toUpperCase()} ${c.name}${c.detail?' — '+c.detail:''}`);
 if(checks.some(c=>c.status!=='pass'))process.exitCode=1;
