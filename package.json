@@ -22,7 +22,8 @@
     "verify:hub": "node scripts/verify-hub.mjs",
     "submission:check": "node scripts/submission-check.mjs",
     "submission:screenshots": "node scripts/submission-screenshots.mjs",
-    "test:wallet:browser": "node scripts/wallet-browser-qa.mjs"
+    "test:wallet:browser": "node scripts/wallet-browser-qa.mjs",
+    "test:faucet:browser": "node scripts/faucet-browser-qa.mjs"
   },
   "dependencies": {
     "@openzeppelin/contracts": "5.4.0",

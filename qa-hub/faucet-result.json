@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "mockedRPC": true,
+  "checks": [
+    "claimed amount is separate from chain balance",
+    "no wallet required to read balance",
+    "15-second polling",
+    "copy address",
+    "invalid address does not query",
+    "RPC failures never become zero balances",
+    "refresh on focus",
+    "mainnet RPC rejected",
+    "no automatic faucet claims",
+    "390px no overflow"
+  ],
+  "pageErrors": []
+}
