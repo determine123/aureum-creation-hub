@@ -4,3 +4,6 @@
 
 .deploy-guide{background:#1d1d18;border:1px solid #54472e;border-radius:8px;padding:18px;margin:20px 0}.deploy-guide h3{font-size:15px;color:#e4c98e}.deploy-guide p{font-size:11px;color:#a5a7aa;line-height:1.8}.deploy-guide ol{padding-left:18px;display:grid;gap:18px}.deploy-guide li strong{display:block;font-size:12px;margin-bottom:9px}.deploy-guide code{display:block;font-size:10px;overflow-wrap:anywhere;color:#c5b58f}.deploy-guide .button{font-size:11px;padding:9px 12px}
 
+
+.wallet-diagnostic{border:1px solid #474234;background:#151714;padding:12px;border-radius:6px;display:grid;gap:12px;font-size:12px}.wallet-diagnostic a{color:#e2c486;text-decoration:underline}.wallet-diagnostic .text-button{text-align:left;padding:0}
+

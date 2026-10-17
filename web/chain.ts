@@ -29,9 +29,9 @@ export async function send(contract:Contract,method:string,args:unknown[]=[]):Pr
 }
 export function parsePrice(s:string){if(!/^\d+(\.\d{1,18})?$/.test(s))throw Error('请输入非负数字，最多 18 位小数');return parseEther(s);}
 export function errorText(error:unknown){const e=error as {shortMessage?:string;reason?:string;message?:string;code?:string;revert?:{name?:string}};if(e.code==='ACTION_REJECTED')return '你已取消钱包签名';const name=e.revert?.name;const errors:Record<string,string>={WrongPhase:'当前阶段不允许此操作，请刷新链上状态',InvalidAmount:'价格必须在限价内，并且不低于上一轮',InvalidSalt:'salt 必须恰好为 18 个 Unicode 字符',InvalidCommitment:'价格、地址或 salt 与提交的 hash 不一致，或重复使用了 hash',NotParticipant:'未报名或上一轮未完成揭露',AlreadyDone:'你已完成此操作',InsufficientAllowance:'请先授权保证金',ERC20InsufficientBalance:'测试代币余额不足，请先领取',InvalidTitle:'标题不能为空，且 UTF-8 长度不能超过 120 字节'};return errors[name??'']??e.reason??e.shortMessage??e.message??String(error);}
-export async function injected(c:Config){
-  const ethereum=(window as unknown as {ethereum?:{request:(x:{method:string;params?:unknown[]})=>Promise<unknown>}}).ethereum;
-  if(!ethereum)throw Error('未检测到浏览器钱包。可使用本地演示钱包，或安装 MetaMask / Rabby。');
+export async function injected(c:Config,selectedProvider?:{request:(x:{method:string;params?:unknown[]})=>Promise<unknown>}){
+  const ethereum=selectedProvider??(window as unknown as {ethereum?:{request:(x:{method:string;params?:unknown[]})=>Promise<unknown>}}).ethereum;
+  if(!ethereum)throw Error('当前浏览器未发现钱包扩展。请在当前 Edge/Chrome 配置文件启用 MetaMask/Rabby、允许访问此网站并解锁，然后刷新页面。Codex 内置浏览器请改用外部浏览器。');
   await ethereum.request({method:'eth_requestAccounts'});
   const chainId='0x'+c.chainId.toString(16);
   try{await ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId}]});}catch(e){

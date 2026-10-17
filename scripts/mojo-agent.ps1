@@ -9,7 +9,12 @@ function Invoke-Mojo([string]$Path,[string]$Method='GET',[string]$Body='',[strin
  $curlConfig=@('url = "https://mojo.devnads.com'+$Path+'"','request = "'+$Method+'"','header = "Content-Type: application/json"')
  if($Secret){$curlConfig+='header = "Authorization: Bearer '+$Secret+'"'}
  if($Body){$escapedBody=$Body.Replace('\','\\').Replace('"','\"').Replace("`n",'\n').Replace("`r",'\r');$curlConfig+='data = "'+$escapedBody+'"'}
- $response=($curlConfig -join "`n") | curl.exe --http1.1 --silent --show-error --fail --connect-timeout 15 --max-time 35 --config '-'
+ $networkArgs=@()
+ try{
+  $internet=Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings'
+  if($internet.ProxyEnable -eq 1 -and $internet.ProxyServer -match '^[a-zA-Z0-9.\-]+:\d+$'){$networkArgs=@('--proxy',('http://'+$internet.ProxyServer))}
+ }catch{}
+ $response=($curlConfig -join "`n") | curl.exe @networkArgs --http1.1 --silent --show-error --fail --connect-timeout 15 --max-time 35 --config '-'
  if($LASTEXITCODE -ne 0){throw 'Mojo request failed; credentials were not printed. Check connectivity before retrying.'}
  return ($response -join "`n") | ConvertFrom-Json
 }

@@ -4,8 +4,8 @@ import ganache from 'ganache';
 import {JsonRpcProvider,ContractFactory,parseEther} from 'ethers';
 import {compile} from './compile.mjs';
 
-export async function createDemo(port=18645){
- const server=ganache.server({logging:{quiet:true},wallet:{totalAccounts:4},chain:{chainId:31337,hardfork:'shanghai'}});
+export async function createDemo(port=18645,chainId=31337){
+ const server=ganache.server({logging:{quiet:true},wallet:{totalAccounts:4},chain:{chainId,hardfork:'shanghai'}});
  await server.listen(port);
  const provider=new JsonRpcProvider('http://127.0.0.1:'+port,undefined,{cacheTimeout:-1});provider.pollingInterval=50;
  try{
@@ -21,7 +21,7 @@ export async function createDemo(port=18645){
   ];
   for(let i=0;i<creations.length;i++){const author=await provider.getSigner(i%2);await(await hub.connect(author).publish(...creations[i])).wait();}
   const supporter=await provider.getSigner(2);await(await token.connect(supporter).faucet()).wait();await(await token.connect(supporter).approve(await hub.getAddress(),parseEther('35'))).wait();await(await hub.connect(supporter).support(0,parseEther('25'))).wait();await(await hub.connect(supporter).support(1,parseEther('10'))).wait();await(await hub.connect(supporter).setSaved(0,true)).wait();
-  const config={chainId:31337,rpcUrl:'http://127.0.0.1:'+port,token:await token.getAddress(),hub:await hub.getAddress()};
+  const config={chainId,rpcUrl:'http://127.0.0.1:'+port,token:await token.getAddress(),hub:await hub.getAddress()};
   return {server,provider,token,hub,config};
  }catch(error){provider.destroy();await server.close();throw error;}
 }
