@@ -30,6 +30,8 @@ for(const path of screenshots)try{
  add(path,width>height,`${width}×${height}`);
 }catch(e){add(path,false,e.message);}
 for(const path of ['README.md',manifest.documentation,'.monskills'])add(path,fs.existsSync(path));
+add('demo-video',Boolean(manifest.demoVideo&&fs.existsSync(manifest.demoVideo)),manifest.demoVideo||'Missing demo video');
+add('monad-batch-simulation',fs.existsSync('benchmarks/monad-batch-simulation.json'),'Read-only simulation; not a transaction receipt');
 try{
  const config=JSON.parse(fs.readFileSync('web/hub-deployment.json','utf8'));
  if(config.chainId!==10143)throw Error('Local demonstration config is not eligible for public submission');

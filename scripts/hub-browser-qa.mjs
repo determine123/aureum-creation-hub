@@ -70,6 +70,7 @@ try{
  const archivePage=await archiveContext.newPage();await archivePage.goto('http://127.0.0.1:15176');
  const archivePanel=archivePage.getByRole('region',{name:'公共网络证据'});
  await archivePanel.getByText(/6,000 字节正文：约 0.396391584 MON/).waitFor();
+ await archivePanel.getByText('新版字节码的 Monad 只读模拟',{exact:true}).waitFor();
  assert.equal(await archivePanel.getByRole('link',{name:audit.hub,exact:true}).getAttribute('href'),'https://testnet.monadscan.com/address/'+audit.hub+'#code');
  await archiveContext.close();
  fs.mkdirSync('qa-hub',{recursive:true});await visitor.screenshot({path:'qa-hub/desktop.png',fullPage:true});

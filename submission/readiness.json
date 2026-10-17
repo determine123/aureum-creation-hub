@@ -67,6 +67,16 @@
       "detail": ""
     },
     {
+      "name": "demo-video",
+      "status": "pass",
+      "detail": "submission/aureum-demo.mp4"
+    },
+    {
+      "name": "monad-batch-simulation",
+      "status": "pass",
+      "detail": "Read-only simulation; not a transaction receipt"
+    },
+    {
       "name": "testnet-contracts",
       "status": "pass",
       "detail": ""
