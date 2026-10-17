@@ -13,13 +13,23 @@
     },
     {
       "name": "frontendUrl",
-      "status": "blocked",
-      "detail": "Missing public URL"
+      "status": "pass",
+      "detail": "https://determine123.github.io/aureum-creation-hub/"
+    },
+    {
+      "name": "frontendUrl-anonymous-browser",
+      "status": "pass",
+      "detail": "Verified in a fresh browser context; see qa-hub/public-result.json"
     },
     {
       "name": "githubUrl",
-      "status": "blocked",
-      "detail": "Missing public URL"
+      "status": "pass",
+      "detail": "https://github.com/determine123/aureum-creation-hub"
+    },
+    {
+      "name": "githubUrl-anonymous-http",
+      "status": "pass",
+      "detail": "200 https://github.com/determine123/aureum-creation-hub; browser acceptance still required"
     },
     {
       "name": "screenshot-count",
@@ -63,8 +73,8 @@
     },
     {
       "name": "agent-instructions-read",
-      "status": "blocked",
-      "detail": "Do not register or submit using guessed API paths"
+      "status": "pass",
+      "detail": "Source and SHA-256 recorded after reading the official instructions"
     }
   ]
 }

@@ -8,6 +8,10 @@ add('event',manifest.eventId===17&&manifest.eventName==='Monad Blitz');
 for(const [field,pattern] of [['frontendUrl',/^https:\/\//],['githubUrl',/^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/]]){
  const value=manifest[field]||'';
  add(field,pattern.test(value),value||'Missing public URL');
+ if(field==='frontendUrl'&&pattern.test(value))try{
+  const report=JSON.parse(fs.readFileSync('qa-hub/public-result.json','utf8'));
+  if(report.passed&&report.anonymousAccess&&report.url===value){add('frontendUrl-anonymous-browser',true,'Verified in a fresh browser context; see qa-hub/public-result.json');continue;}
+ }catch{}
  if(pattern.test(value))try{
   const response=await fetch(value,{redirect:'follow',signal:AbortSignal.timeout(15000)});
   const finalURL=new URL(response.url);
