@@ -5,5 +5,7 @@ dist/
 .local-chain/
 artifacts/
 qa/
+qa-hub/
+submission/aureum-demo.webm
 deployment-testnet.json
 submission/official-agent-instructions.md

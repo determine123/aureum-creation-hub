@@ -41,14 +41,20 @@ try{
    const row={operation:method,...extra,estimatedGas:estimate.toString(),gasLimit:gasLimit.toString(),gasUsed:r.gasUsed.toString(),gasPriceWei:r.gasPrice.toString(),evmFeeMon:formatEther(r.gasUsed*r.gasPrice),receiptMs:Math.round(performance.now()-start),transactionHash:tx.hash};rows.push(row);return row;
   }
   for(const bytes of [100,1000,6000])await measured(hub,'publish',['Benchmark','Local EVM measurement','x'.repeat(bytes),'',0],{bodyUtf8Bytes:bytes});
-  const reader=await provider.getSigner(1);await(await token.connect(reader).faucet()).wait();await(await token.connect(reader).approve(await hub.getAddress(),parseEther('100'))).wait();
+  // Use three different recipients to match the product's "support several creators"
+  // path. The publish measurements above intentionally share the deployer; these
+  // additional creations isolate the support comparison from that setup detail.
+  const authors=await Promise.all([2,3,4].map(i=>provider.getSigner(i)));
+  for(let i=0;i<authors.length;i++)await(await hub.connect(authors[i]).publish(`Creator ${i+1}`,'Multi-author benchmark','Body','',0)).wait();
+  const ids=[3,4,5],reader=await provider.getSigner(1);
+  await(await token.connect(reader).faucet()).wait();await(await token.connect(reader).approve(await hub.getAddress(),parseEther('100'))).wait();
   const h=hub.connect(reader),snapshot=await rpc.request({method:'evm_snapshot',params:[]});
   const singles=[];
-  for(const id of [0,1,2])singles.push(await measured(h,'support',[id,parseEther('1')],{comparison:'three single supports'}));
+  for(const id of ids)singles.push(await measured(h,'support',[id,parseEther('1')],{comparison:'three single supports to three authors'}));
   assert.equal(await rpc.request({method:'evm_revert',params:[snapshot]}),true);
-  const batch=await measured(h,'supportBatch',[[0,1,2],[parseEther('1'),parseEther('1'),parseEther('1')]],{comparison:'one batch of three; same pre-state as singles'});
+  const batch=await measured(h,'supportBatch',[ids,ids.map(()=>parseEther('1'))],{comparison:'one batch to three authors; same pre-state as singles'});
   const singleGas=singles.reduce((n,r)=>n+BigInt(r.gasUsed),0n),batchGas=BigInt(batch.gasUsed);
-  report.batchComparison={identicalStartingState:true,approvalExcludedFromBoth:true,recipientPattern:'three creations, same author',singleGas:singleGas.toString(),batchGas:batchGas.toString(),gasSaved:(singleGas-batchGas).toString(),savedPercent:Number(singleGas-batchGas)*100/Number(singleGas),note:'Local EVM result only. Batch execution is sequential, not a parallel-execution benchmark. No Ethereum/Monad cost comparison is inferred.'};
+  report.batchComparison={identicalStartingState:true,approvalExcludedFromBoth:true,recipientPattern:'three creations by three different authors',itemCount:ids.length,singleGas:singleGas.toString(),batchGas:batchGas.toString(),singleGasPerItem:(singleGas/BigInt(ids.length)).toString(),batchGasPerItem:(batchGas/BigInt(ids.length)).toString(),gasSaved:(singleGas-batchGas).toString(),savedPercent:Number(singleGas-batchGas)*100/Number(singleGas),note:'Local EVM result only. Batch execution is sequential, not a parallel-execution benchmark. No Ethereum/Monad cost comparison is inferred.'};
  }
  fs.mkdirSync('benchmarks',{recursive:true});
  const file=`benchmarks/${publicMode?'monad-estimates':'local-evm'}.json`;

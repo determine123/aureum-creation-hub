@@ -4,6 +4,8 @@
 
 评审请先看 [实现入口与证据指南](docs/REVIEWER-GUIDE.md)。真实前端在 `components/CreationHubApp.tsx`，不是 `app/` 或 `pages/`。
 
+对 Real Monad 三项致命问题的逐条回应、已补证据与仍缺步骤见 [预审回应](docs/REVIEW-RESPONSE.md)。
+
 Real Monad 的四项输入可直接使用 [重新评审填写稿](submission/REAL-MONAD.md)，其中区分已实现、本地实测和公共测试网待办，并提供 7 个评委追问的回答边界。
 
 核心场景是“逛一次作品展，支持多个好想法”：读者发现项目、Ideas 等不同作品后，把最多 20 份加入支持篮，必要时先授权，再用一笔原子交易支持多个作者。这是待真实用户验证的产品假设；测试币支持金额不代表声誉、真实需求或持续收入。
@@ -21,7 +23,7 @@ Real Monad 的四项输入可直接使用 [重新评审填写稿](submission/REA
 - DemoToken：[0x96d09DaD56d6ebbD2BB53832DA4fFaAc24f68F65](https://testnet.monadscan.com/address/0x96d09DaD56d6ebbD2BB53832DA4fFaAc24f68F65#code)。
 - CreationHub：[0x86a520A1d3581750e3c2D2Ed5d99B01dC54801Db](https://testnet.monadscan.com/address/0x86a520A1d3581750e3c2D2Ed5d99B01dC54801Db#code)。这是旧版，仅支持单笔支持，不含批量接口。
 - 运行时代码与历史源码 5d067e9 匹配（仅按编译器 immutableReferences 排除构造时填入的不可变量）；币种、精度与 hub.token 关联均通过 RPC 核验。
-- 原始证据见 [公共链核验记录](deployment/testnet-audit.json) 与 [Monad RPC 估算](benchmarks/monad-estimates.json)。6,000 字节正文在记录费率下约 0.396391584 MON（含 10% 余量），是只读估算，不是成交费用或延迟测量。
+- 原始证据见 [公共链核验记录](deployment/testnet-audit.json)、[Monad RPC 估算](benchmarks/monad-estimates.json) 与 [新版批量字节码模拟](benchmarks/monad-batch-simulation.json)。6,000 字节正文在记录费率下约 0.396391584 MON（含 10% 余量），是只读估算，不是成交费用或延迟测量。
 - 复用已有币部署新版：设置中连接钱包，点击“仅部署新版平台（1 笔，复用测试币）”。这是新合约部署，不迁移旧作品、授权或收藏；现有 BLITZ 余额保留在原代币。
 - 旧版合约在 Monadscan 与 Monadvision 均已验证成功，响应保存在 verification/。发布/支持交易 hash 与新版批量合约地址仍须补齐。
 
@@ -30,10 +32,25 @@ Real Monad 的四项输入可直接使用 [重新评审填写稿](submission/REA
 - 最多 20 份作品合并为一笔批量支持，必要时先按本次总额授权。任一项失败，全批回滚，资金直接抵达作者。合约禁止重复项、自我支持、零金额及归档作品。
 - 发布表单显示 UTF-8 字节计数、真实 RPC Gas 估算、10% 余量和 MON 费用上限。Monad 按 gas_limit 计费，界面不使用本地费用冒充公共测试网费用。
 - 发布、收藏、领取和支持的真实回执可在页面查看，导出本次会话 JSON；记录含链 ID、hash、区块、Gas 上限、Gas 使用和费用。钱包等待时间不当作链确认性能基准。
-- `npm run benchmark:hub` 生成 `benchmarks/local-evm.json`。当前同起点、同作者三项支持实测：单笔合计 311,733 Gas，批量 211,408 Gas，节省约 32.18%；双方均排除授权，仅为本地 EVM 结果，不代表 Monad 或不同作者场景。
-- 公共测试网部署后，`npm run benchmark:hub -- --testnet --config path/to/testnet-config.json --account 0x公开地址` 只读估算 100/1,000/6,000 字节正文成本，不签名或发送交易。
+- `npm run benchmark:hub` 生成 `benchmarks/local-evm.json`。当前同起点、三位不同作者的三项支持实测：单笔合计 380,145 Gas，批量 299,020 Gas，每项 126,715 → 99,673 Gas，节省约 21.34%；双方均排除授权，仅为本地 EVM 结果，不代表 Monad 费用或确认时间。
+- `npm run testnet:simulate -- --account 0x公开地址` 以 state override 在 Monad 测试网 RPC 上模拟**新版 CreationHub 的精确运行时代码**：三位不同作者的单笔合计 527,145 Gas，批量 354,571 Gas，节省约 32.74%；20 项批量上限 1,792,860 Gas；新版 hub 部署估算 1,558,541 Gas。它不签名、不发送交易，模拟地址没有已部署代码，不是回执或成交证据。
+- 公共测试网真实部署后，`npm run benchmark:hub -- --testnet --config path/to/testnet-config.json --account 0x公开地址` 只读估算 100/1,000/6,000 字节正文成本，不签名或发送交易。
 
 批量支持需要新版 CreationHub；旧合约只支持单笔时页面自动禁用支持篮并提示，不会把前端更新冒充合约升级。新部署字节码已包含 supportBatch。EVM 批处理是顺序执行，不等于 Monad 并行性能实测；项目仍有共享统计状态，没有声称无竞争或高 TPS。
+
+## 新版批量合约上线路径
+
+1. 在外部 Edge/Chrome 打开 `/?deploy=1`，连接已有测试 MON 的钱包；在“网络与部署”中点击“仅部署新版平台（1 笔，复用测试币）”。这会复用现有 `DemoToken`，只替换 `CreationHub`；旧作品、收藏和授权不会迁移。
+2. 部署完成后在同一个面板点击“下载配置”，把新的 `token/hub` 地址保存为 JSON，再运行：
+
+```sh
+npm run finalize:testnet -- path/to/aureum-testnet-config.json --account 0x你的公开地址
+
+# 该命令会校验 MAX_SUPPORT_BATCH=20、写入 web/hub-deployment.json、
+# 请求浏览器验证、生成真实 RPC 估算，并重新运行新版字节码模拟。
+```
+
+3. 执行 `npm run build`、重新截取线上截图，提交 `web/hub-deployment.json`、`verification/` 与 `benchmarks/` 后推送 main。GitHub Pages 会重新发布；没有这一步，公共页面仍会诚实地显示旧版单笔合约。
 
 ## 交付状态
 
@@ -41,7 +58,7 @@ Real Monad 的四项输入可直接使用 [重新评审填写稿](submission/REA
 - 已实现：本地链一键演示、浏览器钱包测试网部署入口、公共地址校验与区块浏览器验证脚本。
 - 已创建公开源码仓库：https://github.com/determine123/aureum-creation-hub 。已配置 GitHub Pages 自动部署；最终部署状态以 Actions 与匿名访问验收为准。
 - 公共前端：https://determine123.github.io/aureum-creation-hub/ ，已通过匿名浏览、静态资源、钱包部署向导与手机布局验收；公共链写操作仍待真实交易验收。
-- 公共测试网已配置经 RPC 与历史源码字节码核验的旧版合约（支持单笔流程，不含 supportBatch）；两份旧版合约的区块浏览器验证均已成功；新版批量合约部署和线上写操作验收仍待完成。
+- 公共测试网已配置经 RPC 与历史源码字节码核验的旧版合约（支持单笔流程，不含 supportBatch）；两份旧版合约的区块浏览器验证均已成功。新版批量字节码已在 Monad 测试网完成只读 state-override 模拟，但真实 hub 部署、源码验证和线上写操作验收仍待完成。
 - 历史竞拍和代币买卖代码保留在仓库中，本版首页仅使用 CreationHub，不运行竞拍流程。
 
 ## 快速体验
@@ -63,6 +80,8 @@ npm run demo
 4. 收藏新作品，打开详情，填写数量，确认授权与支持。
 5. 作者钱包余额与累计支持同步增加；刷新重连后收藏仍存在。
 6. 作者可以归档、恢复自己的作品。
+
+运行 `npm run demo:video` 可自动录制批量支持流程，输出 `submission/aureum-demo.mp4` 与 `submission/screenshots/03-batch-basket.png`。视频展示真实本地链授权、`supportBatch` 回执和本次会话凭证，不冒充公共测试网交易。
 
 本地演示使用内存链，重启后重建示例。启动脚本通过开发服务器的 VITE_LOCAL_DEMO 注入本地地址，不修改公共配置。发布前仍需确认 web/hub-deployment.json 是经过校验的测试网配置；旧演示留下的本地地址不得发布。
 

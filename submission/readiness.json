@@ -28,8 +28,8 @@
     },
     {
       "name": "githubUrl-anonymous-http",
-      "status": "blocked",
-      "detail": "fetch failed"
+      "status": "pass",
+      "detail": "200 https://github.com/determine123/aureum-creation-hub; browser acceptance still required"
     },
     {
       "name": "screenshot-count",
@@ -45,6 +45,11 @@
       "name": "submission/screenshots/02-detail.png",
       "status": "pass",
       "detail": "1600×1100"
+    },
+    {
+      "name": "submission/screenshots/03-batch-basket.png",
+      "status": "pass",
+      "detail": "1440×900"
     },
     {
       "name": "README.md",
@@ -63,8 +68,8 @@
     },
     {
       "name": "testnet-contracts",
-      "status": "blocked",
-      "detail": "Command failed: curl.exe --proxy http://127.0.0.1:49721 --http1.1 --silent --show-error --connect-timeout 8 --max-time 15 --retry 2 --retry-all-errors --retry-delay 1 https://testnet-rpc.monad.xyz -H Content-Type: application/json --data-raw {\"id\":1,\"method\":\"eth_chainId\",\"params\":[],\"jsonrpc\":\"2.0\"} --write-out \n%{http_code}\ncurl: (35) schannel: failed to receive handshake, SSL/TLS connection failed\r\ncurl: (35) schannel: failed to receive handshake, SSL/TLS connection failed\r\ncurl: (35) schannel: failed to receive handshake, SSL/TLS connection failed\r\n"
+      "status": "pass",
+      "detail": ""
     },
     {
       "name": "explorer-verification-records",
@@ -79,7 +84,7 @@
     {
       "name": "public-write-acceptance",
       "status": "blocked",
-      "detail": "Requires real publish and support transactions for the configured public hub"
+      "detail": "Requires real publish and supportBatch transactions for the configured public hub"
     },
     {
       "name": "agent-instructions-read",

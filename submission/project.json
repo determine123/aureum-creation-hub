@@ -10,8 +10,10 @@
   "deploymentWallet": "0x37F416f3945b1d40b888868b7C0B37605d446C1e",
   "screenshots": [
     "submission/screenshots/01-cover.png",
-    "submission/screenshots/02-detail.png"
+    "submission/screenshots/02-detail.png",
+    "submission/screenshots/03-batch-basket.png"
   ],
+  "demoVideo": "submission/aureum-demo.mp4",
   "documentation": "submission/PROJECT.md",
   "contracts": {
     "token": "0x96d09DaD56d6ebbD2BB53832DA4fFaAc24f68F65",

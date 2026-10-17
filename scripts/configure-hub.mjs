@@ -3,7 +3,7 @@ import {JsonRpcProvider,Contract,isAddress} from 'ethers';
 import hubAbi from '../web/generated/CreationHub.json' with {type:'json'};
 import tokenAbi from '../web/generated/DemoToken.json' with {type:'json'};
 import {publicProvider} from './public-provider.mjs';
-export async function validate(config){
+export async function validate(config,{requireBatch=false}={}){
  if(config.chainId!==10143||!/^https:\/\//.test(config.rpcUrl)||!isAddress(config.hub)||!isAddress(config.token))throw Error('Requires chain 10143, HTTPS RPC and both contract addresses');
  const p=publicProvider(config.rpcUrl);
  try{
@@ -12,7 +12,12 @@ export async function validate(config){
   const hub=new Contract(config.hub,hubAbi,p),t=new Contract(config.token,tokenAbi,p);
   if((await hub.token()).toLowerCase()!==config.token.toLowerCase())throw Error('Currency mismatch');
   if(await t.symbol()!=='BLITZ'||await t.decimals()!==18n)throw Error('Unexpected demo currency');
-  await hub.creationCount();return config;
+  await hub.creationCount();
+  if(requireBatch){
+    let batch=0n;try{batch=await hub.MAX_SUPPORT_BATCH();}catch{}
+    if(batch!==20n)throw Error('This hub does not expose MAX_SUPPORT_BATCH=20; deploy the new CreationHub first');
+  }
+  return config;
  }finally{p.destroy();}
 }
 if(process.argv[1]?.endsWith('configure-hub.mjs')){

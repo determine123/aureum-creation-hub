@@ -1,0 +1,112 @@
+{
+  "recordedAt": "2026-10-17T10:01:45.698Z",
+  "scope": "Monad testnet read-only eth_estimateGas simulation of the exact new CreationHub runtime; NO transaction sent and NO contract deployed at the simulated address",
+  "chainId": 10143,
+  "rpcUrl": "https://testnet-rpc.monad.xyz",
+  "account": "0x37F416f3945b1d40b888868b7C0B37605d446C1e",
+  "token": "0x96d09DaD56d6ebbD2BB53832DA4fFaAc24f68F65",
+  "simulatedAddress": "0x00000000000000000000000000000000000A11CE",
+  "runtimeBytecodeHash": "0x0111c4645bec7b7b8bb3f2ee480ee8d3afbecd5660a3854e1e3c430efdecc84d",
+  "sourceCommit": "7e2f60ebfa0551e0abbbf50c6dc39d64e978f7b9",
+  "worktreeDirty": true,
+  "latestBlock": {
+    "number": 71792114,
+    "hash": "0xfbfbad425326ce5f4f13fa92bd5572e4c49e533933f9f5f3d392c70c736eb1d0"
+  },
+  "gasPriceWei": "102000000000",
+  "rows": [
+    {
+      "operation": "support-0",
+      "estimatedGas": "175707",
+      "gasLimitWith10Percent": "193277",
+      "estimatedFeeMon": "0.019714254",
+      "kind": "state-override eth_estimateGas"
+    },
+    {
+      "operation": "support-1",
+      "estimatedGas": "175719",
+      "gasLimitWith10Percent": "193290",
+      "estimatedFeeMon": "0.01971558",
+      "kind": "state-override eth_estimateGas"
+    },
+    {
+      "operation": "support-2",
+      "estimatedGas": "175719",
+      "gasLimitWith10Percent": "193290",
+      "estimatedFeeMon": "0.01971558",
+      "kind": "state-override eth_estimateGas"
+    },
+    {
+      "operation": "supportBatch-3",
+      "estimatedGas": "354571",
+      "gasLimitWith10Percent": "390028",
+      "estimatedFeeMon": "0.039782856",
+      "kind": "state-override eth_estimateGas"
+    },
+    {
+      "operation": "supportBatch-20",
+      "estimatedGas": "1792860",
+      "gasLimitWith10Percent": "1972146",
+      "estimatedFeeMon": "0.201158892",
+      "kind": "state-override eth_estimateGas"
+    },
+    {
+      "operation": "publish-100",
+      "estimatedGas": "285019",
+      "gasLimitWith10Percent": "313520",
+      "estimatedFeeMon": "0.03197904",
+      "kind": "state-override eth_estimateGas"
+    },
+    {
+      "operation": "publish-1000",
+      "estimatedGas": "784627",
+      "gasLimitWith10Percent": "863089",
+      "estimatedFeeMon": "0.088035078",
+      "kind": "state-override eth_estimateGas"
+    },
+    {
+      "operation": "publish-6000",
+      "estimatedGas": "3578803",
+      "gasLimitWith10Percent": "3936683",
+      "estimatedFeeMon": "0.401541666",
+      "kind": "state-override eth_estimateGas"
+    },
+    {
+      "operation": "approve",
+      "estimatedGas": "52750",
+      "gasLimitWith10Percent": "58025",
+      "estimatedFeeMon": "0.00591855",
+      "kind": "state-override eth_estimateGas"
+    },
+    {
+      "operation": "deploy-new-hub",
+      "estimatedGas": "1558541",
+      "gasLimitWith10Percent": "1714395",
+      "estimatedFeeMon": "0.17486829",
+      "kind": "creation-code estimate"
+    }
+  ],
+  "comparisons": {
+    "threeDifferentAuthors": {
+      "singleGas": "527145",
+      "batchGas": "354571",
+      "savedGas": "172574",
+      "savedPercent": 32.73748209695624,
+      "singleGasPerItem": "175715",
+      "batchGasPerItem": "118190",
+      "approvalExcluded": true,
+      "note": "All three single estimates and the batch estimate start from the same overridden pre-state. Intrinsic gas is included in eth_estimateGas."
+    },
+    "twentyItemUpperBound": {
+      "batchGas": "1792860",
+      "gasLimitWith10Percent": "1972146",
+      "note": "Upper-bound estimate for the contract’s MAX_SUPPORT_BATCH. No single-transaction comparison is inferred."
+    }
+  },
+  "caveats": [
+    "State overrides synthesize token balances, allowances and creation rows; these are not real users or deployed storage.",
+    "eth_estimateGas is not a receipt. Actual gas used, fee, inclusion and confirmation time require a real wallet transaction.",
+    "The simulated address has no deployed code. A wallet deployment and explorer verification remain required.",
+    "Monad charges by gas limit; fees here use estimate plus 10%, not a measured receipt."
+  ]
+}
