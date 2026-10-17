@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import {Contract,formatEther,type JsonRpcProvider} from 'ethers';
-import hubAbi from './generated/CreationHub.json';
+import hubAbi from '../web/generated/CreationHub.json';
 
 export function PublishGasPreview({provider,hub,account,args,chainId}:{provider:JsonRpcProvider;hub:string;account:string;args:[string,string,string,string,number];chainId:number}){
  const requestKey=JSON.stringify([hub,account,args,chainId]);

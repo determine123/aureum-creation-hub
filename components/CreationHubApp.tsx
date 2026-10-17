@@ -1,15 +1,14 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
-import {createRoot} from 'react-dom/client';
 import {Contract,ContractFactory,JsonRpcProvider,formatEther,parseEther,isAddress,type JsonRpcSigner} from 'ethers';
-import hubAbi from './generated/CreationHub.json';
-import tokenAbi from './generated/DemoToken.json';
-import initial from './hub-deployment.json';
-import {injected,send,short,errorText} from './chain';
-import {useWalletDiscovery,type DiscoveredWallet} from './wallet-discovery';
-import {FaucetPanel,MON_RPC} from './faucet';
-import {PublishGasPreview} from './gas-preview';
-import {TransactionEvidencePanel,type TransactionEvidence} from './transaction-evidence';
-import './hub.css';
+import hubAbi from '../web/generated/CreationHub.json';
+import tokenAbi from '../web/generated/DemoToken.json';
+import initial from '../web/hub-deployment.json';
+import {injected,send,short,errorText} from '../web/chain';
+import {useWalletDiscovery,type DiscoveredWallet} from '../web/wallet-discovery';
+import {FaucetPanel,MON_RPC} from '../web/faucet';
+import {PublishGasPreview} from './PublishGasPreview';
+import {TransactionEvidencePanel,type TransactionEvidence} from './TransactionEvidencePanel';
+import '../web/hub.css';
 
 type Config=typeof initial;
 type Creation={id:bigint;author:string;title:string;summary:string;body:string;link:string;category:number;createdAt:number;support:bigint;saves:bigint;archived:boolean};
@@ -30,7 +29,7 @@ function DeploymentGuide({cfg,account,busy,onSwitch,onConnect,wallets,walletId,o
  return <div className="deploy-guide"><h3>Monad 测试网部署向导</h3><p>在安装了 MetaMask / Rabby 的外部浏览器打开此页。内置浏览器可能没有钱包扩展。</p><div className="wallet-diagnostic"><strong>已检测到 {wallets.length} 个钱包</strong>{wallets.length>0?<select aria-label="选择部署钱包" value={walletId||wallets[0].id} disabled={busy} onChange={e=>onWallet(e.target.value)}>{wallets.map(w=><option key={w.id} value={w.id}>{w.name}</option>)}</select>:<p>请检查当前浏览器配置文件：扩展已启用、允许访问本网站，且已解锁。若尚未安装，可前往 <a href="https://metamask.io/download/" target="_blank" rel="noreferrer">MetaMask 官网</a>。完成后刷新本页。</p>}<button className="text-button" onClick={onRescan}>重新检测钱包</button></div><ol><li><strong>{isTestnet?'✓':'1.'} 使用测试网（10143）</strong><button className="button outline" disabled={busy||isTestnet} onClick={onSwitch}>切换到 Monad 测试网</button></li><li><strong>{isTestnet&&account?'✓':'2.'} 连接有测试 MON 的钱包</strong><button className="button outline" disabled={busy||!isTestnet||wallets.length===0} onClick={onConnect}>{account&&isTestnet?short(account):'连接浏览器钱包'}</button></li><li><strong>{token?'✓':'3.'} 确认测试币部署交易</strong><code>{token||'点击下方“钱包部署”，确认第一笔交易'}</code>{isTestnet&&partial.tokenTx&&<a href={"https://testnet.monadscan.com/tx/"+partial.tokenTx} target="_blank" rel="noreferrer">查看测试币部署交易 ↗</a>}</li><li><strong>{hub?'✓':'4.'} 确认平台部署交易</strong><code>{hub||'测试币部署后，再确认第二笔交易'}</code>{isTestnet&&partial.hubTx&&<a href={"https://testnet.monadscan.com/tx/"+partial.hubTx} target="_blank" rel="noreferrer">查看平台部署交易 ↗</a>}</li><li><strong>5. 导出地址，写入公共配置</strong><p>两笔完成后，下方配置会显示 token 与 hub 地址。复制配置交给开发者校验、验证并重新发布；仅本机保存不等于所有访客都能使用。</p></li></ol></div>;
 }
 
-function App(){
+export default function App(){
  const {wallets,refresh:rescanWallets}=useWalletDiscovery();
  const [walletId,setWalletId]=useState('');
  const selectedWallet=wallets.find(w=>w.id===walletId)??wallets[0];
@@ -97,7 +96,7 @@ function App(){
   setSigner(s);setAccount(address);return address;
  }
  function saveConfig(c:Config){if(!configValid(c))throw Error('请填写有效的测试网或本地链配置');localStorage.setItem(key,JSON.stringify(c));setCfg(c);setDraft(JSON.stringify(c,null,2));setSigner(null);setAccount('');setModal(null);}
- async function deploy(){if(!signer)throw Error('请先连接钱包');const arts=await import('./generated/deploy.json');async function one(a:{abi:any;bytecode:string},args:unknown[]=[]){const f=new ContractFactory(a.abi,a.bytecode,signer!);const gas=await signer!.estimateGas(await f.getDeployTransaction(...args));const c=await f.deploy(...args,{gasLimit:gas+gas/10n});await c.waitForDeployment();return {address:await c.getAddress(),hash:c.deploymentTransaction()!.hash};}
+ async function deploy(){if(!signer)throw Error('请先连接钱包');const arts=await import('../web/generated/deploy.json');async function one(a:{abi:any;bytecode:string},args:unknown[]=[]){const f=new ContractFactory(a.abi,a.bytecode,signer!);const gas=await signer!.estimateGas(await f.getDeployTransaction(...args));const c=await f.deploy(...args,{gasLimit:gas+gas/10n});await c.waitForDeployment();return {address:await c.getAddress(),hash:c.deploymentTransaction()!.hash};}
   const partialKey='aureum:hub:partial:'+cfg.chainId+':'+account.toLowerCase();
   let partial=JSON.parse(localStorage.getItem(partialKey)||'{}');
   if(!partial.token){const deployed=await one(arts.DemoToken);partial.token=deployed.address;partial.tokenTx=deployed.hash;localStorage.setItem(partialKey,JSON.stringify(partial));}
@@ -130,4 +129,3 @@ function App(){
  {modal&&<div className="modal-backdrop" onClick={()=>!busy&&setModal(null)}><section className="modal" role="dialog" aria-modal="true" aria-label={modal==="publish"?"发布创造":modal==="faucet"?"MON 水龙头":"网络与部署"} onClick={e=>e.stopPropagation()}><button className="close" aria-label="关闭窗口" disabled={busy} onClick={()=>setModal(null)}>×</button>{modal==="faucet"?<FaucetPanel account={account} hasWallet={wallets.length>0} onConnect={connectFaucetWallet}/>:modal==='publish'?<><div className="eyebrow">CREATE SOMETHING THAT MATTERS</div><h2>把你的创造带到链上。</h2><form onSubmit={e=>{e.preventDefault();run('发布创造',publish);}}><label>类型<select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{categories.map((c,i)=><option value={i} key={c}>{c}</option>)}</select></label><label>标题 · 最多 120 UTF-8 字节<input required value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/></label><label>一句话介绍 · 最多 480 字节<textarea required rows={2} value={form.summary} onChange={e=>setForm({...form,summary:e.target.value})}/></label><label>正文 · 最多 6,000 字节<textarea required rows={7} value={form.body} onChange={e=>setForm({...form,body:e.target.value})}/></label><label>演示 / GitHub / 附件链接 · 可选<input type="url" placeholder="https://" value={form.link} onChange={e=>setForm({...form,link:e.target.value})}/></label><p className="form-note">只发布你有权分享的内容。正文和链接公开上链；不要提交隐私、密钥或未公开的信息。</p><PublishGasPreview provider={provider} hub={cfg.hub} account={account} chainId={cfg.chainId} args={[form.title,form.summary,form.body,form.link,Number(form.category)]}/><button className="button gold" disabled={busy||!ready}>确认发布到链上 ↗</button></form></>:<><h2>网络与部署</h2><DeploymentGuide wallets={wallets} walletId={walletId} onWallet={id=>{setWalletId(id);setSigner(null);setAccount("");}} onRescan={rescanWallets} cfg={cfg} account={account} busy={busy} onSwitch={()=>{saveConfig({...initial,chainId:10143,rpcUrl:"https://testnet-rpc.monad.xyz",token:"",hub:""});setModal("settings");}} onConnect={()=>run("连接测试网钱包",()=>connect(false))}/><p className="form-note">本地演示链 31337 / Monad 测试网 10143。发布公共站点前，需要同步公共合约配置。</p><textarea aria-label="网络配置" rows={9} value={draft} onChange={e=>setDraft(e.target.value)}/><div className="detail-actions"><button className="button gold" disabled={busy} onClick={()=>run('保存配置',async()=>saveConfig(JSON.parse(draft)))}>保存配置</button><button className="button outline" disabled={busy||!signer} onClick={()=>run('部署平台',deploy)}>钱包部署（2 笔，可续传）</button></div><small>先连接有测试 MON 的钱包。已部署地址会保存，后续拒签可重试续传。</small></>}</section></div>}
  </div>;
 }
-createRoot(document.getElementById('root')!).render(<App/>);

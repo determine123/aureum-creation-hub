@@ -12,15 +12,15 @@
 
 ## 直接阅读实现
 
-- `web/hub.tsx`：真实前端入口，包括目录、分类、搜索、详情、发布、收藏、归档和批量支持。
-- `web/gas-preview.tsx`：发布前使用 RPC 估算 Gas，显示 UTF-8 正文字节数、Gas 上限、当前费率估算及费用上限。
-- `web/transaction-evidence.tsx`：本次浏览器会话的真实回执、交易链接、费用、等待时间和 JSON 导出。
+- `components/CreationHubApp.tsx`：真实前端入口，包括目录、分类、搜索、详情、发布、收藏、归档和批量支持。
+- `components/PublishGasPreview.tsx`：发布前使用 RPC 估算 Gas，显示 UTF-8 正文字节数、Gas 上限、当前费率估算及费用上限。
+- `components/TransactionEvidencePanel.tsx`：本次浏览器会话的真实回执、交易链接、费用、等待时间和 JSON 导出。
 - `contracts/CreationHub.sol`：发布、单笔/批量支持、收藏、归档及有界分页。
 - `test/hub.test.mjs`：多作者精确到账、整批回滚、权限和边界。
 - `scripts/hub-browser-qa.mjs`：从浏览到发布、两项批量支持、凭证导出的真实本地链端到端测试。
 - `benchmarks/local-evm.json`：可重跑的本地测量，明确标注链 ID 与范围。
 
-前端放在 `web/`，不使用 Next.js 的 `app/` 或 `pages/`。仅扫描常见目录而未读取 `web/` 不能据此认定没有前端实现。历史竞拍/交易合约不属于本次功能亮点。
+前端主页面与可复用组件位于 `components/`，`web/main.tsx` 是挂载入口，`web/` 还保留链连接、钱包、水龙头、样式和生成的 ABI。目录已兼容仅识别常见前端目录的静态扫描器。历史竞拍/交易合约不属于本次功能亮点。
 
 ## 为什么选择 Monad
 

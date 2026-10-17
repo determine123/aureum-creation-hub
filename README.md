@@ -2,7 +2,7 @@
 
 为 Monad Blitz 构建的开放创意与成果分享平台。项目、Ideas、工具、资料和其他创造，都能公开发布；读者免费浏览，用测试虚拟币表达支持。参考「传承·交大」的共享定位，使用独立品牌与原创演示内容，不代表上海交通大学官方项目。
 
-评审请先看 [实现入口与证据指南](docs/REVIEWER-GUIDE.md)。真实前端在 `web/hub.tsx`，不是 `app/` 或 `pages/`。
+评审请先看 [实现入口与证据指南](docs/REVIEWER-GUIDE.md)。真实前端在 `components/CreationHubApp.tsx`，不是 `app/` 或 `pages/`。
 
 ## 新增：灵感支持篮与交易证据
 
