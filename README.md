@@ -82,3 +82,16 @@ npm run build
 
 - https://share.dyweb.sjtu.cn/ ：公开页面的课程资料共享定位，仅作为共享理念参考。
 - 本项目未访问该站受登录限制的内部页面、代码或数据。
+
+## 比赛官方提交材料
+
+中文项目名：**创想集 AUREUM**。文案见 submission/PROJECT.md，字段清单见 submission/project.json，流程与当前阻塞项见 submission/OFFICIAL-WORKFLOW.md。
+
+```sh
+npm run submission:screenshots
+npm run submission:check
+```
+
+截图命令默认连接正在运行的本地演示，输出两张 1600×1100 横屏图。公共测试网上线后，可执行 npm run submission:screenshots -- https://真实演示地址 重新取图。检查脚本验证必填字段、图片比例、合约配置、公开网址响应和验证记录，输出 submission/readiness.json。它不会替代人工核验最终链上验证状态，也不会在缺少比赛 Agent 指引时猜测注册或提交接口。
+
+官方开发文档：https://docs.monad.xyz/developer-essentials ，测试网信息：https://docs.monad.xyz/developer-essentials/testnet ，部署概要：https://docs.monad.xyz/developer-essentials/summary 。

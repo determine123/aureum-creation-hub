@@ -1,0 +1,70 @@
+{
+  "ready": false,
+  "checks": [
+    {
+      "name": "project-name",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "event",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "frontendUrl",
+      "status": "blocked",
+      "detail": "Missing public URL"
+    },
+    {
+      "name": "githubUrl",
+      "status": "blocked",
+      "detail": "Missing public URL"
+    },
+    {
+      "name": "screenshot-count",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "submission/screenshots/01-cover.png",
+      "status": "pass",
+      "detail": "1600×1100"
+    },
+    {
+      "name": "submission/screenshots/02-detail.png",
+      "status": "pass",
+      "detail": "1600×1100"
+    },
+    {
+      "name": "README.md",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "submission/PROJECT.md",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": ".monskills",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "testnet-contracts",
+      "status": "blocked",
+      "detail": "Local demonstration config is not eligible for public submission"
+    },
+    {
+      "name": "explorer-verification-records",
+      "status": "blocked",
+      "detail": "Records must also be inspected for final verification success"
+    },
+    {
+      "name": "agent-instructions-read",
+      "status": "blocked",
+      "detail": "Do not register or submit using guessed API paths"
+    }
+  ]
+}

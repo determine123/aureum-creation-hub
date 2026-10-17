@@ -19,7 +19,9 @@
     "test:hub": "node --test test/hub.test.mjs",
     "test:hub:browser": "node scripts/hub-browser-qa.mjs",
     "configure:hub": "node scripts/configure-hub.mjs",
-    "verify:hub": "node scripts/verify-hub.mjs"
+    "verify:hub": "node scripts/verify-hub.mjs",
+    "submission:check": "node scripts/submission-check.mjs",
+    "submission:screenshots": "node scripts/submission-screenshots.mjs"
   },
   "dependencies": {
     "@openzeppelin/contracts": "5.4.0",

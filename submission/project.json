@@ -1,0 +1,13 @@
+{
+  "eventId": 17,
+  "eventName": "Monad Blitz",
+  "projectName": "创想集 AUREUM",
+  "tagline": "让项目、Ideas 和每一份创造获得链上支持。",
+  "frontendUrl": "",
+  "githubUrl": "",
+  "network": "monad-testnet",
+  "chainId": 10143,
+  "deploymentWallet": "0x37F416f3945b1d40b888868b7C0B37605d446C1e",
+  "screenshots": ["submission/screenshots/01-cover.png", "submission/screenshots/02-detail.png"],
+  "documentation": "submission/PROJECT.md"
+}
