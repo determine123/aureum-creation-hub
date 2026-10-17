@@ -1,0 +1,90 @@
+import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
+import {createRoot} from 'react-dom/client';
+import {Contract,ContractFactory,JsonRpcProvider,formatEther,parseEther,isAddress,type JsonRpcSigner} from 'ethers';
+import hubAbi from './generated/CreationHub.json';
+import tokenAbi from './generated/DemoToken.json';
+import initial from './hub-deployment.json';
+import {injected,send,short,errorText} from './chain';
+import './hub.css';
+
+type Config=typeof initial;
+type Creation={id:bigint;author:string;title:string;summary:string;body:string;link:string;category:number;createdAt:number;support:bigint;saves:bigint;archived:boolean};
+const categories=['项目','Ideas','工具','资料','其他'];
+const symbols=['↗','✦','⌘','▤','◈'];
+const fmt=(n:bigint)=>Number(formatEther(n)).toLocaleString('zh-CN',{maximumFractionDigits:2});
+const key='aureum:hub:v1';
+function configValid(c:Config){return [10143,31337].includes(c.chainId)&&/^https?:\/\//.test(c.rpcUrl)&&(!c.token||isAddress(c.token))&&(!c.hub||isAddress(c.hub));}
+function readConfig():Config{try{const c=JSON.parse(localStorage.getItem(key)||'null');return c&&configValid(c)?c:initial;}catch{return initial;}}
+function safeLink(s:string){try{const u=new URL(s);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
+function normalize(c:any):Creation{return {id:c.id,author:c.author,title:c.title,summary:c.summary,body:c.body,link:c.link,category:Number(c.category),createdAt:Number(c.createdAt),support:c.support,saves:c.saves,archived:c.archived};}
+
+function App(){
+ const [cfg,setCfg]=useState<Config>(readConfig),[draft,setDraft]=useState(()=>JSON.stringify(readConfig(),null,2));
+ const provider=useMemo(()=>{const p=new JsonRpcProvider(cfg.rpcUrl);p.pollingInterval=1000;return p;},[cfg]);
+ const [signer,setSigner]=useState<JsonRpcSigner|null>(null),[account,setAccount]=useState(''),[localIndex,setLocalIndex]=useState('0');
+ const [balance,setBalance]=useState(0n),[mon,setMon]=useState(0n),[earned,setEarned]=useState(0n),[totalSupport,setTotalSupport]=useState(0n);
+ const [items,setItems]=useState<Creation[]>([]),[total,setTotal]=useState(0),[limit,setLimit]=useState(20),[saved,setSaved]=useState<Set<string>>(new Set());
+ const [view,setView]=useState('发现'),[category,setCategory]=useState('全部'),[search,setSearch]=useState(''),[sort,setSort]=useState('最新发布');
+ const [modal,setModal]=useState<'publish'|'settings'|null>(null),[selected,setSelected]=useState<Creation|null>(null),[author,setAuthor]=useState('');
+ const [busy,setBusy]=useState(false),[message,setMessage]=useState(''),[readError,setReadError]=useState(''),[ready,setReady]=useState(false),[lastTx,setLastTx]=useState('');
+ const [form,setForm]=useState({title:'',summary:'',body:'',link:'',category:'0'}),[tip,setTip]=useState('10');
+ const lock=useRef(false),generation=useRef(0);
+ const configured=!!cfg.token&&!!cfg.hub;
+ const hub=(s:JsonRpcProvider|JsonRpcSigner=provider)=>new Contract(cfg.hub,hubAbi,s);
+ const token=(s:JsonRpcProvider|JsonRpcSigner=provider)=>new Contract(cfg.token,tokenAbi,s);
+ const refresh=useCallback(async()=>{
+  if(!configured)return;
+  const epoch=generation.current;
+  try{
+   if((await provider.getNetwork()).chainId!==BigInt(cfg.chainId))throw Error('RPC 网络与配置不一致');
+   const h=new Contract(cfg.hub,hubAbi,provider),t=new Contract(cfg.token,tokenAbi,provider);
+   if((await h.token()).toLowerCase()!==cfg.token.toLowerCase())throw Error('平台合约与代币地址不匹配');
+   const [count,support]=await Promise.all([h.creationCount(),h.totalSupport()]);
+   const rows:Creation[]=[];
+   for(let offset=0;offset<Math.min(Number(count),limit);offset+=20){const batch=await h.listCreations(offset,Math.min(20,limit-offset));rows.push(...batch.map(normalize));}
+   const marks=account?await Promise.all(rows.map(async c=>await h.saved(c.id,account)?String(c.id):'')):[];
+   const wallet=account?await Promise.all([t.balanceOf(account),provider.getBalance(account),h.received(account)]):[0n,0n,0n];
+   if(epoch!==generation.current)return;
+   setItems(rows);setTotal(Number(count));setTotalSupport(support);setSaved(new Set(marks.filter(Boolean)));setBalance(wallet[0]);setMon(wallet[1]);setEarned(wallet[2]);setReady(true);setReadError('');
+  }catch(e){if(epoch===generation.current){setReady(false);setReadError(errorText(e));}}
+ },[cfg,provider,account,limit,configured]);
+ useEffect(()=>{generation.current++;setItems([]);setSaved(new Set());setReady(false);let active=true,running=false;const read=async()=>{if(!active||running)return;running=true;try{await refresh();}finally{running=false;}};read();const timer=setInterval(read,10000);return()=>{active=false;generation.current++;clearInterval(timer);};},[refresh]);
+ useEffect(()=>{const eth=(window as any).ethereum;if(!eth?.on)return;const reset=()=>{setSigner(null);setAccount('');};eth.on('accountsChanged',reset);eth.on('chainChanged',reset);return()=>{eth.removeListener?.('accountsChanged',reset);eth.removeListener?.('chainChanged',reset);};},[]);
+ useEffect(()=>{if(!ready)return;const id=new URLSearchParams(location.search).get('creation');if(id&&/^\d+$/.test(id)){hub().getCreation(id).then(c=>setSelected(normalize(c))).catch(()=>setMessage('该作品不存在'));}},[cfg.hub,ready]);
+ async function run(label:string,action:()=>Promise<void>){if(lock.current)return;lock.current=true;setBusy(true);setMessage(label+'，请确认钱包交易…');try{await action();await refresh();setMessage(label+'完成');}catch(e){setMessage(errorText(e));}finally{lock.current=false;setBusy(false);}}
+ async function transact(c:Contract,method:string,args:unknown[]=[]){const tx=await send(c,method,args);setLastTx(tx.hash);await tx.wait();}
+ async function connect(local=false){const s=local?await provider.getSigner(Number(localIndex)):await injected({...cfg,auction:cfg.hub});setSigner(s);setAccount(await s.getAddress());}
+ function saveConfig(c:Config){if(!configValid(c))throw Error('请填写有效的测试网或本地链配置');localStorage.setItem(key,JSON.stringify(c));setCfg(c);setDraft(JSON.stringify(c,null,2));setSigner(null);setAccount('');setModal(null);}
+ async function deploy(){if(!signer)throw Error('请先连接钱包');const arts=await import('./generated/deploy.json');async function one(a:{abi:any;bytecode:string},args:unknown[]=[]){const f=new ContractFactory(a.abi,a.bytecode,signer!);const gas=await signer!.estimateGas(await f.getDeployTransaction(...args));const c=await f.deploy(...args,{gasLimit:gas+gas/10n});await c.waitForDeployment();return c.getAddress();}
+  const partialKey='aureum:hub:partial:'+cfg.chainId+':'+account.toLowerCase();
+  let partial=JSON.parse(localStorage.getItem(partialKey)||'{}');
+  if(!partial.token){partial.token=await one(arts.DemoToken);localStorage.setItem(partialKey,JSON.stringify(partial));}
+  setMessage('测试币已部署，继续确认平台部署交易');
+  if(!partial.hub){partial.hub=await one(arts.CreationHub,[partial.token]);localStorage.setItem(partialKey,JSON.stringify(partial));}
+  saveConfig({...cfg,...partial});
+ }
+ async function support(c:Creation){if(!signer)throw Error('请先连接钱包');const value=parseEther(tip);if(value<=0n)throw Error('支持数量必须大于零');const t=token(signer);if(await t.allowance(account,cfg.hub)<value)await transact(t,'approve',[cfg.hub,value]);await transact(hub(signer),'support',[c.id,value]);setSelected(normalize(await hub().getCreation(c.id)));}
+ async function bookmark(c:Creation){await transact(hub(signer!),'setSaved',[c.id,!saved.has(String(c.id))]);if(selected?.id===c.id)setSelected(normalize(await hub().getCreation(c.id)));}
+ async function publish(){if(!signer)throw Error('请先连接钱包');const lengths=[form.title,form.summary,form.body,form.link].map(x=>new TextEncoder().encode(x).length);if(!form.title.trim()||!form.summary.trim()||!form.body.trim()||lengths[0]>120||lengths[1]>480||lengths[2]>6000||lengths[3]>300)throw Error('请填写标题、摘要与内容，并遵守字节长度限制');if(form.link&&!safeLink(form.link))throw Error('链接只支持 http 或 https');await transact(hub(signer),'publish',[form.title,form.summary,form.body,form.link,Number(form.category)]);setForm({title:'',summary:'',body:'',link:'',category:'0'});setModal(null);setView('我的发布');setAuthor('');}
+ const visible=items.filter(c=>{
+  const own=c.author.toLowerCase()===account.toLowerCase();
+  return (view==='我的发布'?own:view==='我的收藏'?saved.has(String(c.id)):!c.archived)&&(!author||c.author.toLowerCase()===author.toLowerCase())&&(category==='全部'||categories[c.category]===category)&&(!search||(c.title+' '+c.summary+' '+c.body).toLowerCase().includes(search.toLowerCase()));
+ }).sort((a,b)=>sort==='最多支持'?(a.support===b.support?Number(b.id-a.id):a.support>b.support?-1:1):Number(b.id-a.id));
+ const go=(s:string)=>{setView(s);setAuthor('');setSearch('');setCategory('全部');};
+ return <div className="app"><aside className="sidebar"><a className="brand" href="/">✦ <span>AUREUM<small>创想集 · BUILT ON MONAD</small></span></a><div className="side-label">你的灵感，值得被看见</div><div className="side-nav">{['发现','我的发布','我的收藏'].map((s,i)=><button className={view===s?'current':''} aria-label={s} key={s} onClick={()=>go(s)}><span>{['◈','↗','♡'][i]}</span>{s}</button>)}</div><div className="side-note"><span className="live-dot"/> {cfg.chainId===31337?'本地演示链':'Monad 测试网'}<p>作品留在链上<br/>让认可抵达创作者</p><button onClick={()=>setModal('settings')}>网络与部署 ↗</button></div><small className="independent">独立黑客松原型<br/>非上海交通大学官方产品</small></aside>
+ <div className="workspace"><nav><span>探索 / {author?'作者作品':view}</span><div className="wallet-area">{account&&<span className="wallet-balance">{fmt(balance)} <b>BLITZ</b><small>{fmt(mon)} MON · {short(account)}</small></span>}{cfg.chainId===31337&&<select aria-label="演示钱包" disabled={busy} value={localIndex} onChange={e=>{setLocalIndex(e.target.value);setSigner(null);setAccount('');}}>{[0,1,2,3].map(i=><option key={i} value={i}>演示钱包 {i+1}</option>)}</select>}<button className="button outline" disabled={busy} onClick={()=>run('连接钱包',()=>connect(cfg.chainId===31337))}>{account?'重新连接':'连接钱包'}</button><button className="text-button" aria-label="网络设置" onClick={()=>setModal('settings')}>⚙</button></div></nav>
+ <main><section className="hero"><div className="hero-copy"><div className="eyebrow"><span className="live-dot"/> MONAD BLITZ · 创作与分享</div><h1>每一个好想法，<br/>都有<span>下一位同行者。</span></h1><p>从一个 Idea，到一个能跑的项目。<br/>分享你的创造，用链上的一份支持，让灵感继续生长。</p><div className="hero-actions"><button className="button gold" disabled={busy} onClick={()=>{if(!signer){setMessage('连接钱包后即可发布，未连接也能浏览全部公开作品。');return;}setModal('publish');}}>发布你的创造 <span>↗</span></button><button className="text-button" onClick={()=>document.getElementById('creations')?.scrollIntoView({behavior:'smooth'})}>探索作品 ↓</button></div></div><div className="hero-art" aria-hidden="true"><div className="orbit one"/><div className="orbit two"/><div className="orbit three"/><div className="core">✦</div><span className="float-label label-one">IDEA → IMPACT</span><span className="float-label label-two">由你发起 · 一起实现</span></div></section>
+ <div className="metrics"><div><strong>{ready?total:'—'}</strong><span>链上创造</span></div><div><strong>{ready?fmt(totalSupport):'—'}<small> BLITZ</small></strong><span>累计支持</span></div><div><strong>{account?fmt(earned):'—'}<small> BLITZ</small></strong><span>我获得的支持</span></div><div className="faucet"><span>把第一份认可送给创作者</span><button disabled={!signer||!ready||busy} onClick={()=>run('领取测试币',()=>transact(token(signer!),'faucet'))}>领取测试 BLITZ ↗</button></div></div>
+ {(!configured||readError)&&<div className="connection-note">{readError||'尚未配置合约。可先启动本地演示，或在网络与部署中通过钱包部署到 Monad 测试网。'} <button onClick={()=>setModal('settings')}>查看配置</button></div>}
+ {message&&<div className="toast" role="status">{message}{lastTx&&cfg.chainId===10143&&<a href={'https://testnet.monadscan.com/tx/'+lastTx} target="_blank" rel="noreferrer">查看交易 ↗</a>}</div>}
+ <section id="creations"><div className="section-heading"><div><div className="eyebrow">THE NEXT THING STARTS HERE</div><h2>{author?'来自 '+short(author)+' 的创造':view==='发现'?'发现值得支持的创造':view}</h2></div><select aria-label="排序" value={sort} onChange={e=>setSort(e.target.value)}><option>最新发布</option><option>最多支持</option></select></div><div className="toolbar"><div className="categories">{['全部',...categories].map(c=><button key={c} className={category===c?'active':''} onClick={()=>setCategory(c)}>{c}</button>)}</div><label className="search"><span>⌕</span><input aria-label="搜索作品" placeholder="搜索已加载的项目、灵感、作品…" value={search} onChange={e=>setSearch(e.target.value)}/></label></div>
+ {(view!=='发现'&&!account)&&<div className="empty">连接钱包后查看你的发布与收藏。</div>}
+ <div className="cards">{visible.map(c=><article className={'creation-card type-'+c.category} key={String(c.id)}><div className="card-top"><span className="category-tag">{categories[c.category]}</span><span className="card-id">NO. {String(c.id+1n).padStart(3,'0')}</span></div><button className="card-open" aria-label={'查看 '+c.title} onClick={()=>setSelected(c)}><div className="card-symbol">{symbols[c.category]}</div><h3>{c.title}</h3><p>{c.summary}</p></button><button className="author" onClick={()=>{setView('发现');setAuthor(c.author);}}><span className="avatar">{c.author.slice(2,4).toUpperCase()}</span>{short(c.author)}<span>↗</span></button><div className="card-bottom"><span>✦ {fmt(c.support)} <small>BLITZ</small>{c.archived&&<small> · 已归档</small>}</span><button aria-label={'收藏 '+c.title} className={saved.has(String(c.id))?'is-saved':''} disabled={!signer||busy||!ready} onClick={()=>run('更新收藏',()=>bookmark(c))}>{saved.has(String(c.id))?'♥':'♡'} {String(c.saves)}</button></div></article>)}</div>
+ {!visible.length&&(view==='发现'||account)&&<div className="empty"><span>✦</span><h3>{ready?'这里还没有匹配的创造':'等待连接链上作品库'}</h3><p>{ready?'换个关键词，或成为第一个发布者。':'无需登录即可浏览；发布、收藏和支持需要钱包确认。'}</p></div>}
+ <div className="load-more"><span>已加载 {items.length} / {total} 条 · 搜索与筛选作用于已加载作品</span>{items.length<total&&<button className="button outline" disabled={busy} onClick={()=>setLimit(n=>n+20)}>加载更多作品</button>}</div></section>
+ <footer><span>✦ AUREUM · 创想集</span><span>公开分享 · 自愿支持 · 链上留痕</span><small>测试币无实际价值</small></footer></main></div>
+ {selected&&<div className="modal-backdrop" onClick={()=>setSelected(null)}><section className="modal detail" role="dialog" aria-modal="true" aria-label="作品详情" onClick={e=>e.stopPropagation()}><button className="close" aria-label="关闭详情" onClick={()=>setSelected(null)}>×</button><span className="category-tag">{categories[selected.category]}</span><h2>{selected.title}</h2><p className="detail-summary">{selected.summary}</p><div className="detail-meta">作者 {short(selected.author)} · {new Date(selected.createdAt*1000).toLocaleDateString('zh-CN')} · {selected.archived?'已归档':'公开作品'}</div><div className="body-text">{selected.body}</div>{safeLink(selected.link)&&<a className="external-link" href={safeLink(selected.link)} target="_blank" rel="noreferrer">查看演示 / 仓库 / 附件 ↗</a>}<div className="support-panel"><div><strong>✦ {fmt(selected.support)} BLITZ</strong><small>这份创造获得的支持，直接抵达作者钱包。</small></div><label>支持数量<input aria-label="支持数量" value={tip} onChange={e=>setTip(e.target.value)}/></label><button className="button gold" disabled={!signer||busy||!ready||selected.archived||selected.author.toLowerCase()===account.toLowerCase()} onClick={()=>run('支持作者',()=>support(selected))}>授权并支持</button></div><div className="detail-actions"><button className="button outline" disabled={!signer||busy||!ready} onClick={()=>run('更新收藏',()=>bookmark(selected))}>{saved.has(String(selected.id))?'取消收藏':'收藏作品'}</button><button className="text-button" onClick={()=>{navigator.clipboard.writeText(location.origin+'/?creation='+selected.id).then(()=>setMessage('作品链接已复制')).catch(()=>setMessage('复制失败，可使用地址栏链接'));}}>复制作品链接</button>{selected.author.toLowerCase()===account.toLowerCase()&&<button className="text-button" disabled={busy||!ready} onClick={()=>run('更新归档',async()=>{await transact(hub(signer!),'setArchived',[selected.id,!selected.archived]);setSelected(normalize(await hub().getCreation(selected.id)));})}>{selected.archived?'恢复公开':'归档作品'}</button>}</div><small>链上内容始终公开；归档只隐藏默认列表，无法抹除链上记录。</small></section></div>}
+ {modal&&<div className="modal-backdrop" onClick={()=>!busy&&setModal(null)}><section className="modal" role="dialog" aria-modal="true" aria-label={modal==='publish'?'发布创造':'网络与部署'} onClick={e=>e.stopPropagation()}><button className="close" aria-label="关闭窗口" disabled={busy} onClick={()=>setModal(null)}>×</button>{modal==='publish'?<><div className="eyebrow">CREATE SOMETHING THAT MATTERS</div><h2>把你的创造带到链上。</h2><form onSubmit={e=>{e.preventDefault();run('发布创造',publish);}}><label>类型<select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{categories.map((c,i)=><option value={i} key={c}>{c}</option>)}</select></label><label>标题 · 最多 120 UTF-8 字节<input required value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/></label><label>一句话介绍 · 最多 480 字节<textarea required rows={2} value={form.summary} onChange={e=>setForm({...form,summary:e.target.value})}/></label><label>正文 · 最多 6,000 字节<textarea required rows={7} value={form.body} onChange={e=>setForm({...form,body:e.target.value})}/></label><label>演示 / GitHub / 附件链接 · 可选<input type="url" placeholder="https://" value={form.link} onChange={e=>setForm({...form,link:e.target.value})}/></label><p className="form-note">只发布你有权分享的内容。正文和链接公开上链；不要提交隐私、密钥或未公开的信息。</p><button className="button gold" disabled={busy||!ready}>确认发布到链上 ↗</button></form></>:<><h2>网络与部署</h2><p className="form-note">本地演示链 31337 / Monad 测试网 10143。发布公共站点前，需要同步公共合约配置。</p><textarea aria-label="网络配置" rows={9} value={draft} onChange={e=>setDraft(e.target.value)}/><div className="detail-actions"><button className="button gold" disabled={busy} onClick={()=>run('保存配置',async()=>saveConfig(JSON.parse(draft)))}>保存配置</button><button className="button outline" disabled={busy||!signer} onClick={()=>run('部署平台',deploy)}>钱包部署（2 笔，可续传）</button></div><small>先连接有测试 MON 的钱包。已部署地址会保存，后续拒签可重试续传。</small></>}</section></div>}
+ </div>;
+}
+createRoot(document.getElementById('root')!).render(<App/>);

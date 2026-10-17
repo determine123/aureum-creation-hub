@@ -1,0 +1,6 @@
+{
+  "chainId": 31337,
+  "rpcUrl": "http://127.0.0.1:8545",
+  "token": "0x1033A26f38baa88427A2d78D7C960d01Ce0C6597",
+  "auction": "0xdD1dFF499a4833A22211e2AccE574794aAdEe2B2"
+}

@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "checks": [
+    "anonymous browsing",
+    "publish idea",
+    "category and keyword filter",
+    "onchain bookmark persists after reload",
+    "exact author token balance increase",
+    "author archive",
+    "390px no overflow"
+  ],
+  "pageErrors": []
+}

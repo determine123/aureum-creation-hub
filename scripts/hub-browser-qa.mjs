@@ -1,0 +1,53 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {chromium} from 'playwright';
+import {parseEther} from 'ethers';
+import {createDemo} from './hub-demo.mjs';
+const demo=await createDemo(18646);
+const vite=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','15176','--strictPort'],{stdio:'ignore',windowsHide:true});
+let browser;
+try{
+ for(let i=0;i<100;i++){try{if((await fetch('http://127.0.0.1:15176')).ok)break;}catch{}await new Promise(r=>setTimeout(r,100));}
+ browser=await chromium.launch({channel:'msedge',headless:true});
+ const errors=[];
+ async function pageFor(index){const ctx=await browser.newContext({viewport:{width:1440,height:1100}});await ctx.addInitScript(config=>localStorage.setItem('aureum:hub:v1',JSON.stringify(config)),demo.config);const page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:15176');await page.getByRole('button',{name:'查看 Re:Campus · 校园物品循环计划',exact:true}).waitFor();if(index!==null){await page.getByLabel('演示钱包').selectOption(String(index));await page.getByRole('button',{name:'连接钱包',exact:true}).click();await page.getByRole('status').filter({hasText:'连接钱包完成'}).waitFor();}return page;}
+ const author=await pageFor(0);
+ await author.getByRole('button',{name:'发布你的创造',exact:false}).click();
+ const form=author.getByRole('dialog',{name:'发布创造',exact:true});
+ await form.getByLabel('类型').selectOption('1');
+ await form.getByLabel('标题 · 最多 120 UTF-8 字节',{exact:true}).fill('Open Lab · 让好想法找到队友');
+ await form.getByLabel('一句话介绍 · 最多 480 字节',{exact:true}).fill('一个开放共创的 Idea，欢迎一起把原型变成作品。');
+ await form.getByLabel('正文 · 最多 6,000 字节',{exact:true}).fill('第一步：发布问题。\n第二步：邀请同行者。\n第三步：验证价值。🚀');
+ await form.getByRole('button',{name:'确认发布到链上',exact:false}).click();
+ await author.getByRole('status').filter({hasText:'发布创造完成'}).waitFor();
+ const reader=await pageFor(1);
+ await reader.getByRole('button',{name:'领取测试 BLITZ',exact:false}).click();
+ await reader.getByRole('status').filter({hasText:'领取测试币完成'}).waitFor();
+ await reader.getByRole('button',{name:'Ideas',exact:true}).click();
+ await reader.getByLabel('搜索作品').fill('Open Lab');
+ assert.equal(await reader.locator('.creation-card').count(),1);
+ await reader.getByRole('button',{name:'查看 Open Lab · 让好想法找到队友',exact:true}).click();
+ const detail=reader.getByRole('dialog',{name:'作品详情',exact:true});
+ await detail.getByRole('button',{name:'收藏作品',exact:true}).click();
+ await reader.getByRole('status').filter({hasText:'更新收藏完成'}).waitFor();
+ const authorAddress=await(await demo.provider.getSigner(0)).getAddress();
+ const before=await demo.token.balanceOf(authorAddress);
+ await detail.getByRole('button',{name:'授权并支持',exact:true}).click();
+ await reader.getByRole('status').filter({hasText:'支持作者完成'}).waitFor();
+ assert.equal(await demo.token.balanceOf(authorAddress),before+parseEther('10'));
+ await detail.getByRole('button',{name:'关闭详情',exact:true}).click();
+ await reader.getByRole('button',{name:'我的收藏',exact:true}).click();
+ await reader.getByRole('button',{name:'查看 Open Lab · 让好想法找到队友',exact:true}).waitFor();
+ await reader.reload();await reader.getByLabel('演示钱包').selectOption('1');await reader.getByRole('button',{name:'连接钱包',exact:true}).click();await reader.getByRole('status').filter({hasText:'连接钱包完成'}).waitFor();await reader.getByRole('button',{name:'我的收藏',exact:true}).click();await reader.getByRole('button',{name:'查看 Open Lab · 让好想法找到队友',exact:true}).waitFor();
+ const visitor=await pageFor(null);
+ fs.mkdirSync('qa-hub',{recursive:true});await visitor.screenshot({path:'qa-hub/desktop.png',fullPage:true});
+ await visitor.setViewportSize({width:390,height:844});
+ assert.equal(await visitor.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ await visitor.screenshot({path:'qa-hub/mobile.png',fullPage:true});
+ await author.getByRole('button',{name:'查看 Open Lab · 让好想法找到队友',exact:true}).click();await author.getByRole('button',{name:'归档作品',exact:true}).click();await author.getByRole('status').filter({hasText:'更新归档完成'}).waitFor();
+ assert.equal((await demo.hub.getCreation(5)).archived,true);
+ assert.deepEqual(errors,[]);
+ fs.writeFileSync('qa-hub/result.json',JSON.stringify({passed:true,checks:['anonymous browsing','publish idea','category and keyword filter','onchain bookmark persists after reload','exact author token balance increase','author archive','390px no overflow'],pageErrors:errors},null,2));
+ console.log('Hub browser E2E passed.');
+}finally{if(browser)await browser.close();vite.kill();demo.provider.destroy();await demo.server.close();}

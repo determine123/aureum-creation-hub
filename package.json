@@ -1,0 +1,39 @@
+{
+  "name": "aureum-creation-hub",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "node scripts/compile.mjs && tsc && vite build",
+    "compile": "node scripts/compile.mjs",
+    "test": "node --test test/*.test.mjs",
+    "chain": "node scripts/chain.mjs",
+    "deploy:local": "node scripts/deploy-local.mjs",
+    "test:browser": "node scripts/browser-qa.mjs",
+    "verify:testnet": "node scripts/verify-testnet.mjs",
+    "preview": "vite preview --host 127.0.0.1",
+    "deploy:market:local": "node scripts/deploy-market-local.mjs",
+    "test:market": "node --test test/market.test.mjs",
+    "demo": "node scripts/hub-demo.mjs",
+    "test:hub": "node --test test/hub.test.mjs",
+    "test:hub:browser": "node scripts/hub-browser-qa.mjs",
+    "configure:hub": "node scripts/configure-hub.mjs",
+    "verify:hub": "node scripts/verify-hub.mjs"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "5.4.0",
+    "ethers": "6.17.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "ganache": "7.9.2",
+    "playwright": "^1.64.1",
+    "solc": "0.8.30",
+    "typescript": "5.9.3",
+    "vite": "8.3.4"
+  }
+}
