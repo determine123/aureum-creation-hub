@@ -62,6 +62,16 @@ try{
  await reader.getByRole('button',{name:'查看 Open Lab · 让好想法找到队友',exact:true}).waitFor();
  await reader.reload();await reader.getByLabel('演示钱包').selectOption('1');await reader.getByRole('button',{name:'连接钱包',exact:true}).click();await reader.getByRole('status').filter({hasText:'连接钱包完成'}).waitFor();await reader.getByRole('button',{name:'我的收藏',exact:true}).click();await reader.getByRole('button',{name:'查看 Open Lab · 让好想法找到队友',exact:true}).waitFor();
  const visitor=await pageFor(null);
+ await visitor.getByRole('region',{name:'公共网络证据'}).getByText('当前为本地演示，不能视为 Monad 公共网络证据。',{exact:true}).waitFor();
+ // Check archived evidence rendering, without claiming this local RPC is a public network.
+ const audit=JSON.parse(fs.readFileSync('deployment/testnet-audit.json','utf8'));
+ const archiveContext=await browser.newContext();
+ await archiveContext.addInitScript(c=>localStorage.setItem('aureum:hub:v1',JSON.stringify(c)),{chainId:10143,rpcUrl:demo.config.rpcUrl,token:audit.token,hub:audit.hub});
+ const archivePage=await archiveContext.newPage();await archivePage.goto('http://127.0.0.1:15176');
+ const archivePanel=archivePage.getByRole('region',{name:'公共网络证据'});
+ await archivePanel.getByText(/6,000 字节正文：约 0.396391584 MON/).waitFor();
+ assert.equal(await archivePanel.getByRole('link',{name:audit.hub,exact:true}).getAttribute('href'),'https://testnet.monadscan.com/address/'+audit.hub+'#code');
+ await archiveContext.close();
  fs.mkdirSync('qa-hub',{recursive:true});await visitor.screenshot({path:'qa-hub/desktop.png',fullPage:true});
  await visitor.setViewportSize({width:390,height:844});
  assert.equal(await visitor.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
@@ -69,6 +79,6 @@ try{
  await author.getByRole('button',{name:'查看 Open Lab · 让好想法找到队友',exact:true}).click();await author.getByRole('button',{name:'归档作品',exact:true}).click();await author.getByRole('status').filter({hasText:'更新归档完成'}).waitFor();
  assert.equal((await demo.hub.getCreation(5)).archived,true);
  assert.deepEqual(errors,[]);
- fs.writeFileSync('qa-hub/result.json',JSON.stringify({passed:true,scope:'Local EVM only, not public Monad transactions',checks:['anonymous browsing','publish fee preview and local network label','publish idea','category and keyword filter','onchain bookmark persists after reload','exact author token balance increase','two-item support basket exact transfer and clear','transaction receipt evidence JSON export','author archive','390px no overflow'],pageErrors:errors},null,2));
+ fs.writeFileSync('qa-hub/result.json',JSON.stringify({passed:true,scope:'Local EVM only, not public Monad transactions',checks:['anonymous browsing','publish fee preview and local network label','publish idea','category and keyword filter','onchain bookmark persists after reload','exact author token balance increase','two-item support basket exact transfer and clear','transaction receipt evidence JSON export','author archive','local evidence is never labeled public','archived public evidence rendering without live-network claims','390px no overflow'],pageErrors:errors},null,2));
  console.log('Hub browser E2E passed.');
 }finally{if(browser)await browser.close();vite.kill();demo.provider.destroy();await demo.server.close();}

@@ -11,7 +11,9 @@
     "two-item support basket exact transfer and clear",
     "transaction receipt evidence JSON export",
     "author archive",
-    "390px no overflow"
+    "390px no overflow",
+    "local evidence is never labeled public",
+    "archived public evidence rendering without live-network claims"
   ],
   "pageErrors": []
 }

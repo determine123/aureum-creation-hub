@@ -24,7 +24,9 @@
     "submission:screenshots": "node scripts/submission-screenshots.mjs",
     "test:wallet:browser": "node scripts/wallet-browser-qa.mjs",
     "test:faucet:browser": "node scripts/faucet-browser-qa.mjs",
-    "benchmark:hub": "node scripts/hub-benchmark.mjs"
+    "benchmark:hub": "node scripts/hub-benchmark.mjs",
+    "capture:testnet": "node scripts/capture-testnet-transaction.mjs",
+    "test:evidence": "node --test test/transaction-proof.test.mjs"
   },
   "dependencies": {
     "@openzeppelin/contracts": "5.4.0",
