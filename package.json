@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
+    "dev": "vite --host localhost --port 3000 --strictPort",
     "build": "node scripts/compile.mjs && tsc && vite build",
     "compile": "node scripts/compile.mjs",
     "test": "node --test test/*.test.mjs",
@@ -23,7 +23,8 @@
     "submission:check": "node scripts/submission-check.mjs",
     "submission:screenshots": "node scripts/submission-screenshots.mjs",
     "test:wallet:browser": "node scripts/wallet-browser-qa.mjs",
-    "test:faucet:browser": "node scripts/faucet-browser-qa.mjs"
+    "test:faucet:browser": "node scripts/faucet-browser-qa.mjs",
+    "benchmark:hub": "node scripts/hub-benchmark.mjs"
   },
   "dependencies": {
     "@openzeppelin/contracts": "5.4.0",

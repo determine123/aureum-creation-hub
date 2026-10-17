@@ -25,10 +25,12 @@ contract CreationHub is ReentrancyGuard {
     mapping(address => uint256) public received;
     mapping(address => uint256) public contributed;
     uint256 public totalSupport;
+    uint256 public constant MAX_SUPPORT_BATCH = 20;
     event Published(uint256 indexed id, address indexed author, uint8 category);
     event Supported(uint256 indexed id, address indexed supporter, uint256 amount);
     event BookmarkChanged(uint256 indexed id, address indexed account, bool value);
     event ArchiveChanged(uint256 indexed id, bool value);
+    event BatchSupported(address indexed supporter, uint256 count, uint256 total);
 
     constructor(address currency) {
         require(currency.code.length > 0, "Invalid token");
@@ -43,6 +45,21 @@ contract CreationHub is ReentrancyGuard {
         emit Published(id, msg.sender, category);
     }
     function support(uint256 id, uint256 amount) external nonReentrant {
+        _support(id, amount);
+    }
+    /// @notice Atomic, bounded support basket. Reuses warm token/account access within one transaction.
+    /// @dev Batching is sequential EVM execution, not a claim of parallel execution or measured TPS.
+    function supportBatch(uint256[] calldata ids, uint256[] calldata amounts) external nonReentrant {
+        require(ids.length > 0 && ids.length <= MAX_SUPPORT_BATCH && ids.length == amounts.length, "Invalid batch");
+        uint256 total;
+        for (uint256 i; i < ids.length; i++) {
+            for (uint256 j; j < i; j++) require(ids[j] != ids[i], "Duplicate creation");
+            total += amounts[i];
+            _support(ids[i], amounts[i]);
+        }
+        emit BatchSupported(msg.sender, ids.length, total);
+    }
+    function _support(uint256 id, uint256 amount) private {
         Creation storage c = creations[id];
         require(!c.archived && c.author != msg.sender && amount > 0, "Invalid support");
         c.support += amount;

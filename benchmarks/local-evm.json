@@ -1,0 +1,95 @@
+{
+  "recordedAt": "2026-10-17T08:55:00.011Z",
+  "scope": "Local Ganache EVM measurements; NOT Monad testnet performance",
+  "chainId": 31337,
+  "publicTransactionsSent": false,
+  "rows": [
+    {
+      "operation": "publish",
+      "bodyUtf8Bytes": 100,
+      "estimatedGas": "263857",
+      "gasLimit": "290242",
+      "gasUsed": "263503",
+      "gasPriceWei": "864447129",
+      "evmFeeMon": "0.000227784411832887",
+      "receiptMs": 69,
+      "transactionHash": "0xe84f202d77890ae3483d698ee3ca0824198c8c1c9032b1033a1c8ca59bf53ee0"
+    },
+    {
+      "operation": "publish",
+      "bodyUtf8Bytes": 1000,
+      "estimatedGas": "902405",
+      "gasLimit": "992645",
+      "gasUsed": "902051",
+      "gasPriceWei": "758289441",
+      "evmFeeMon": "0.000684015748543491",
+      "receiptMs": 116,
+      "transactionHash": "0xf25b806f5ed236edaebce54be95582560c09301c795256c7601560eb99556610"
+    },
+    {
+      "operation": "publish",
+      "bodyUtf8Bytes": 6000,
+      "estimatedGas": "4444250",
+      "gasLimit": "4888675",
+      "gasUsed": "4443896",
+      "gasPriceWei": "669203393",
+      "evmFeeMon": "0.002973870281339128",
+      "receiptMs": 281,
+      "transactionHash": "0x0da371b4bfd4b2dbe552bb1d207892f8e1eb1495726955d529ae9c4a7dba1ee2"
+    },
+    {
+      "operation": "support",
+      "comparison": "three single supports",
+      "estimatedGas": "143082",
+      "gasLimit": "157390",
+      "gasUsed": "138103",
+      "gasPriceWei": "467795962",
+      "evmFeeMon": "0.000064604025740086",
+      "receiptMs": 66,
+      "transactionHash": "0x290c60c06ac9f9fb278f56d0509c69463a33765b9d5e7e7046671b438cfde7f2"
+    },
+    {
+      "operation": "support",
+      "comparison": "three single supports",
+      "estimatedGas": "91794",
+      "gasLimit": "100973",
+      "gasUsed": "86815",
+      "gasPriceWei": "409859833",
+      "evmFeeMon": "0.000035581981401895",
+      "receiptMs": 59,
+      "transactionHash": "0x240201b06f0a1cafa61aa9a65acdf015dbf7cb337adf17004cdd3877acd619a0"
+    },
+    {
+      "operation": "support",
+      "comparison": "three single supports",
+      "estimatedGas": "91794",
+      "gasLimit": "100973",
+      "gasUsed": "86815",
+      "gasPriceWei": "358923872",
+      "evmFeeMon": "0.00003115997594768",
+      "receiptMs": 65,
+      "transactionHash": "0x077623c9625f1b093be110fcca4d5326ee1479ced1980ecc316eda4fe77fe781"
+    },
+    {
+      "operation": "supportBatch",
+      "comparison": "one batch of three; same pre-state as singles",
+      "estimatedGas": "216383",
+      "gasLimit": "238021",
+      "gasUsed": "211408",
+      "gasPriceWei": "467795962",
+      "evmFeeMon": "0.000098895808734496",
+      "receiptMs": 91,
+      "transactionHash": "0x6321fc4757cb279f338a9fc03f7f2738ed1068b744894001c4218ed311b231b3"
+    }
+  ],
+  "batchComparison": {
+    "identicalStartingState": true,
+    "approvalExcludedFromBoth": true,
+    "recipientPattern": "three creations, same author",
+    "singleGas": "311733",
+    "batchGas": "211408",
+    "gasSaved": "100325",
+    "savedPercent": 32.182989930485384,
+    "note": "Local EVM result only. Batch execution is sequential, not a parallel-execution benchmark. No Ethereum/Monad cost comparison is inferred."
+  }
+}

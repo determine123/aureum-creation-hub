@@ -1,11 +1,15 @@
 {
   "passed": true,
+  "scope": "Local EVM only, not public Monad transactions",
   "checks": [
     "anonymous browsing",
+    "publish fee preview and local network label",
     "publish idea",
     "category and keyword filter",
     "onchain bookmark persists after reload",
     "exact author token balance increase",
+    "two-item support basket exact transfer and clear",
+    "transaction receipt evidence JSON export",
     "author archive",
     "390px no overflow"
   ],

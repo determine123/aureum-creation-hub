@@ -19,6 +19,8 @@ try{
  await form.getByLabel('标题 · 最多 120 UTF-8 字节',{exact:true}).fill('Open Lab · 让好想法找到队友');
  await form.getByLabel('一句话介绍 · 最多 480 字节',{exact:true}).fill('一个开放共创的 Idea，欢迎一起把原型变成作品。');
  await form.getByLabel('正文 · 最多 6,000 字节',{exact:true}).fill('第一步：发布问题。\n第二步：邀请同行者。\n第三步：验证价值。🚀');
+ await form.getByText(/Gas 上限（含 10% 余量）：\d+/).waitFor();
+ assert.match(await form.locator('.gas-preview').innerText(),/不代表 Monad 测试网费用/);
  await form.getByRole('button',{name:'确认发布到链上',exact:false}).click();
  await author.getByRole('status').filter({hasText:'发布创造完成'}).waitFor();
  const reader=await pageFor(1);
@@ -37,6 +39,25 @@ try{
  await reader.getByRole('status').filter({hasText:'支持作者完成'}).waitFor();
  assert.equal(await demo.token.balanceOf(authorAddress),before+parseEther('10'));
  await detail.getByRole('button',{name:'关闭详情',exact:true}).click();
+ await reader.getByLabel('搜索作品').fill('');
+ await reader.getByRole('button',{name:'全部',exact:true}).click();
+ const addToBasket=async title=>reader.locator('.creation-card').filter({has:reader.getByRole('button',{name:'查看 '+title,exact:true})}).getByRole('button',{name:'＋ 加入支持篮',exact:true}).click();
+ await addToBasket('Re:Campus · 校园物品循环计划');
+ await addToBasket('Open Lab · 让好想法找到队友');
+ const basket=reader.getByRole('region',{name:'灵感支持篮'});
+ await basket.getByLabel('每份支持数量').fill('2');
+ const beforeBatch=await demo.token.balanceOf(authorAddress);
+ await basket.getByRole('button',{name:'授权并批量支持',exact:true}).click();
+ await reader.getByRole('status').filter({hasText:'批量支持完成'}).waitFor();
+ assert.equal(await demo.token.balanceOf(authorAddress),beforeBatch+parseEther('4'));
+ assert.equal(await basket.locator('li').count(),0);
+ const evidence=reader.getByRole('region',{name:'链上凭证'});
+ await evidence.getByText('supportBatch',{exact:true}).waitFor();
+ const downloadPromise=reader.waitForEvent('download');
+ await evidence.getByRole('button',{name:'导出本次交易记录'}).click();
+ const download=await downloadPromise;
+ const exportPath=await download.path();const exported=JSON.parse(fs.readFileSync(exportPath,'utf8'));
+ assert.ok(exported.records.some(r=>r.method==='supportBatch'&&r.chainId===31337&&r.gasLimit&&r.hash));
  await reader.getByRole('button',{name:'我的收藏',exact:true}).click();
  await reader.getByRole('button',{name:'查看 Open Lab · 让好想法找到队友',exact:true}).waitFor();
  await reader.reload();await reader.getByLabel('演示钱包').selectOption('1');await reader.getByRole('button',{name:'连接钱包',exact:true}).click();await reader.getByRole('status').filter({hasText:'连接钱包完成'}).waitFor();await reader.getByRole('button',{name:'我的收藏',exact:true}).click();await reader.getByRole('button',{name:'查看 Open Lab · 让好想法找到队友',exact:true}).waitFor();
@@ -48,6 +69,6 @@ try{
  await author.getByRole('button',{name:'查看 Open Lab · 让好想法找到队友',exact:true}).click();await author.getByRole('button',{name:'归档作品',exact:true}).click();await author.getByRole('status').filter({hasText:'更新归档完成'}).waitFor();
  assert.equal((await demo.hub.getCreation(5)).archived,true);
  assert.deepEqual(errors,[]);
- fs.writeFileSync('qa-hub/result.json',JSON.stringify({passed:true,checks:['anonymous browsing','publish idea','category and keyword filter','onchain bookmark persists after reload','exact author token balance increase','author archive','390px no overflow'],pageErrors:errors},null,2));
+ fs.writeFileSync('qa-hub/result.json',JSON.stringify({passed:true,scope:'Local EVM only, not public Monad transactions',checks:['anonymous browsing','publish fee preview and local network label','publish idea','category and keyword filter','onchain bookmark persists after reload','exact author token balance increase','two-item support basket exact transfer and clear','transaction receipt evidence JSON export','author archive','390px no overflow'],pageErrors:errors},null,2));
  console.log('Hub browser E2E passed.');
 }finally{if(browser)await browser.close();vite.kill();demo.provider.destroy();await demo.server.close();}

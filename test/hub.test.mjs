@@ -34,5 +34,31 @@ test('public creation lifecycle, atomic support, bookmarks, author permissions a
  await tx(h.setArchived(0,true));await assert.rejects(h.connect(reader).support(0,U('1')));
  assert.equal((await h.getCreation(0)).body,'正文支持中文与 Emoji 🚀');
  await tx(h.setArchived(0,false));assert.equal((await h.listCreations(0,20))[0].archived,false);
+ // Batch: direct multi-author transfers and all-or-nothing rollback, including earlier transfers.
+ const other=await p.getSigner(2),otherAddress=await other.getAddress();
+ await tx(h.connect(other).publish('Second','Summary','Body','',1));
+ const r=h.connect(reader);
+ await tx(t.connect(reader).approve(await h.getAddress(),U('1000')));
+ await assert.rejects(r.supportBatch([],[]));
+ await assert.rejects(r.supportBatch([0],[U('1'),U('2')]));
+ await assert.rejects(r.supportBatch(Array.from({length:21},(_,i)=>i),Array(21).fill(1n)));
+ await assert.rejects(r.supportBatch([0,0],[U('1'),U('1')]));
+ const balanceBefore=await t.balanceOf(a),totalBefore=await h.totalSupport();
+ await assert.rejects(r.supportBatch([0,1],[U('5'),0n]));
+ assert.equal(await t.balanceOf(a),balanceBefore);assert.equal(await h.totalSupport(),totalBefore);
+ await tx(h.connect(other).setArchived(1,true));
+ await assert.rejects(r.supportBatch([0,1],[U('5'),U('5')]));
+ await tx(h.connect(other).setArchived(1,false));
+ await assert.rejects(h.supportBatch([1,0],[U('1'),U('1')])); // Self support even after a valid item.
+ await tx(t.connect(reader).approve(await h.getAddress(),U('6')));
+ await assert.rejects(r.supportBatch([0,1],[U('5'),U('5')])); // Insufficient allowance on second item.
+ assert.equal(await t.balanceOf(a),balanceBefore);assert.equal(await h.totalSupport(),totalBefore);
+ await tx(t.connect(reader).approve(await h.getAddress(),U('10')));
+ const receipt=await tx(r.supportBatch([0,1],[U('4'),U('6')]));
+ assert.equal(await t.balanceOf(a),balanceBefore+U('4'));
+ assert.equal(await t.balanceOf(otherAddress),U('6'));
+ assert.equal(await h.totalSupport(),totalBefore+U('10'));
+ assert.equal(await t.balanceOf(await h.getAddress()),0n);
+ assert.equal(receipt.logs.filter(l=>{try{return h.interface.parseLog(l)?.name==='Supported';}catch{return false;}}).length,2);
  }finally{p.destroy();await rpc.disconnect();}
 });

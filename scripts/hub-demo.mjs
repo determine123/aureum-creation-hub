@@ -27,9 +27,11 @@ export async function createDemo(port=18645,chainId=31337){
 }
 
 if(process.argv[1]?.endsWith('hub-demo.mjs')){
- compile();const demo=await createDemo();
- const vite=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','15175','--strictPort'],{stdio:'inherit',windowsHide:true,env:{...process.env,VITE_LOCAL_DEMO:JSON.stringify(demo.config)}});
- console.log('\nAUREUM demo: http://127.0.0.1:15175\n4 local unlocked wallets; original demo content is genuinely published on the local chain.\n'+JSON.stringify(demo.config));
+ function portArg(name,fallback){const i=process.argv.indexOf(name);const n=i<0?fallback:Number(process.argv[i+1]);if(!Number.isInteger(n)||n<1024||n>65535)throw Error('Invalid '+name);return n;}
+ const webPort=portArg('--port',15175),rpcPort=portArg('--rpc-port',18645);
+ compile();const demo=await createDemo(rpcPort);
+ const vite=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port',String(webPort),'--strictPort'],{stdio:'inherit',windowsHide:true,env:{...process.env,VITE_LOCAL_DEMO:JSON.stringify(demo.config)}});
+ console.log('\nAUREUM demo: http://127.0.0.1:'+webPort+'\n4 local unlocked wallets; original demo content is genuinely published on the local chain.\n'+JSON.stringify(demo.config));
  async function close(){vite.kill();demo.provider.destroy();await demo.server.close();process.exit(0);}
  process.on('SIGINT',close);process.on('SIGTERM',close);
 }
