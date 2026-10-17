@@ -28,8 +28,7 @@ export async function createDemo(port=18645){
 
 if(process.argv[1]?.endsWith('hub-demo.mjs')){
  compile();const demo=await createDemo();
- fs.writeFileSync('web/hub-deployment.json',JSON.stringify(demo.config,null,2));
- const vite=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','15175','--strictPort'],{stdio:'inherit',windowsHide:true});
+ const vite=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','15175','--strictPort'],{stdio:'inherit',windowsHide:true,env:{...process.env,VITE_LOCAL_DEMO:JSON.stringify(demo.config)}});
  console.log('\nAUREUM demo: http://127.0.0.1:15175\n4 local unlocked wallets; original demo content is genuinely published on the local chain.\n'+JSON.stringify(demo.config));
  async function close(){vite.kill();demo.provider.destroy();await demo.server.close();process.exit(0);}
  process.on('SIGINT',close);process.on('SIGTERM',close);

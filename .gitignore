@@ -6,3 +6,4 @@ dist/
 artifacts/
 qa/
 deployment-testnet.json
+submission/official-agent-instructions.md
